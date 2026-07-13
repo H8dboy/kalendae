@@ -80,7 +80,10 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 #calLabel {
   flex: 1; text-align: center; font-size: 15px; font-weight: 600;
   text-transform: capitalize; font-family: var(--mono);
+  background: none; border: none; color: var(--ink); cursor: pointer;
+  min-height: var(--tap); border-radius: var(--radius);
 }
+#calLabel:hover { color: var(--neon); }
 #calTabs { display: flex; border-bottom: 1px solid var(--line); }
 #calTabs .tab {
   flex: 1; background: none; border: none; color: var(--dim);
@@ -130,6 +133,13 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .chip.p2 { border-left-color: var(--prio-high); }
 .chip.done { opacity: .45; text-decoration: line-through; border-left-color: var(--dim); }
 .chip.more { background: none; color: var(--dim); border: none; }
+.chip.festivo { border-left-color: var(--warn); color: var(--warn); }
+.cell.festivo:not(.today) .num { color: var(--warn); font-weight: 700; }
+.holiday-row {
+  display: flex; gap: 8px; padding: 8px 12px; font-size: 12px;
+  color: var(--warn); font-family: var(--mono); align-items: center;
+  border-top: 1px solid var(--line);
+}
 
 /* vista settimana / giorno */
 .agenda-day { border-bottom: 1px solid var(--line); }
@@ -289,6 +299,16 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .subtask .rm:hover { color: var(--danger); }
 #subAdd { display: flex; gap: 8px; margin-top: 6px; }
 #subAdd input { flex: 1; }
+
+/* selettore mese/anno */
+.ym-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.ym-grid .btn.current { border-color: var(--neon); color: var(--neon); }
+#ymYear {
+  flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--ink);
+  padding: 10px; border-radius: var(--radius); font-size: 17px; text-align: center;
+  min-height: var(--tap); font-family: var(--mono);
+}
+#ymYear:focus { outline: none; border-color: var(--neon-dim); }
 
 /* menu ⋮ */
 #menuPop {

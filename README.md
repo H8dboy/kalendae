@@ -10,7 +10,13 @@ build desktop come bonus e iOS predisposto.
 
 - **Calendario** (schermata principale): vista mese / settimana / giorno,
   swipe per cambiare periodo, pulsante "Oggi", tap su un giorno → nuovo evento
-  con data precompilata, tap su un evento → modifica.
+  con data precompilata, tap su un evento → modifica. Tocca il mese/anno in
+  alto per **saltare a qualsiasi mese e anno (1583–4000)**.
+- **Festività nazionali**: nelle Impostazioni scegli lo stato (bandiera 🇮🇹 🇦🇱
+  🇽🇰 🇲🇰 🇨🇭 🇩🇪 🇦🇹 🇫🇷 🇪🇸 🇬🇧 🇺🇸 🇬🇷) e le feste di quel paese compaiono fissate sul
+  calendario, calcolate offline per qualsiasi anno: date fisse, Pasqua
+  occidentale e ortodossa (computus), feste islamiche col calendario tabulare
+  (Fitër/Kurban Bajrami, precisione ±1 giorno).
 - **Task** (icona ☑ in alto a destra): gruppi personalizzabili (creabili,
   rinominabili, eliminabili — le task di un gruppo eliminato passano a
   "Generale"), spunta di completamento che **salva data e ora** ("fatta

@@ -5,6 +5,7 @@ import { t } from '../i18n/index.js';
 import { toast } from '../ui/toast.js';
 import { esc } from '../ui/modal.js';
 import { occursOn, toIso, parseIso } from '../logic/recurrence.js';
+import { holidayMap, countryByCode, MIN_YEAR, MAX_YEAR } from '../logic/holidays.js';
 import { openActivityModal } from './activityModal.js';
 
 const $ = id => document.getElementById(id);
@@ -13,8 +14,26 @@ let view = 'month';                 // 'month' | 'week' | 'day'
 let cursor = new Date();            // giorno di riferimento della vista
 let firstDay = 1;                   // 1 = lunedì, 0 = domenica (da impostazioni)
 let pickActivity = null;            // task in attesa di data (modalità scelta giorno)
+let country = '';                   // stato per le festività ('' = nessuno)
+const holidayCache = new Map();     // "IT:2026" → Map(dataIso → [nomi])
 
 export function setFirstDay(d) { firstDay = d; }
+
+export function setCountry(code) {
+  country = code ?? '';
+  holidayCache.clear();
+}
+
+/** Nomi delle festività del giorno (secondo lo stato scelto nelle impostazioni). */
+function holidayNames(dateIso) {
+  if (!country) return [];
+  const year = +dateIso.slice(0, 4);
+  const key = `${country}:${year}`;
+  if (!holidayCache.has(key)) holidayCache.set(key, holidayMap(country, year));
+  return holidayCache.get(key).get(dateIso) ?? [];
+}
+
+const countryFlag = () => countryByCode(country)?.flag ?? '⭐';
 
 export function initCalendar() {
   $('todayBtn').textContent = t('today');
@@ -34,6 +53,7 @@ export function initCalendar() {
   $('calPrev').addEventListener('click', () => shift(-1));
   $('calNext').addEventListener('click', () => shift(1));
   $('todayBtn').addEventListener('click', () => { cursor = new Date(); render(); });
+  initYmPicker();
 
   $('fabCal').addEventListener('click', () =>
     openActivityModal({ presetDate: toIso(cursor), onChange: render }));
@@ -60,6 +80,51 @@ function shift(dir) {
   else if (view === 'week') cursor.setDate(cursor.getDate() + 7 * dir);
   else cursor.setDate(cursor.getDate() + dir);
   render();
+}
+
+/* ---------- selettore "vai a mese e anno" ---------- */
+function initYmPicker() {
+  const clamp = y => Math.min(MAX_YEAR, Math.max(MIN_YEAR, y || cursor.getFullYear()));
+
+  $('calLabel').addEventListener('click', () => {
+    $('ymYear').value = cursor.getFullYear();
+    renderYmMonths();
+    $('ymOverlay').classList.add('open');
+  });
+  $('ymCancel').addEventListener('click', () => $('ymOverlay').classList.remove('open'));
+  $('ymOverlay').addEventListener('click', e => {
+    if (e.target.id === 'ymOverlay') $('ymOverlay').classList.remove('open');
+  });
+  $('ymPrev').addEventListener('click', () => {
+    $('ymYear').value = clamp(+$('ymYear').value - 1);
+    renderYmMonths();
+  });
+  $('ymNext').addEventListener('click', () => {
+    $('ymYear').value = clamp(+$('ymYear').value + 1);
+    renderYmMonths();
+  });
+  $('ymYear').addEventListener('change', () => {
+    $('ymYear').value = clamp(+$('ymYear').value);
+    renderYmMonths();
+  });
+}
+
+function renderYmMonths() {
+  const grid = $('ymMonths');
+  grid.innerHTML = '';
+  const year = +$('ymYear').value;
+  t('months').forEach((name, i) => {
+    const b = document.createElement('button');
+    b.className = 'btn' +
+      (year === cursor.getFullYear() && i === cursor.getMonth() ? ' current' : '');
+    b.textContent = name.slice(0, 3);
+    b.addEventListener('click', () => {
+      cursor = new Date(year, i, 1);
+      $('ymOverlay').classList.remove('open');
+      render();
+    });
+    grid.appendChild(b);
+  });
 }
 
 /* ---------- modalità "scegli giorno" (assegna data a una task) ---------- */
@@ -161,6 +226,16 @@ async function renderMonth() {
     num.textContent = d.getDate();
     cell.appendChild(num);
 
+    const holidays = holidayNames(iso);
+    if (holidays.length) {
+      cell.classList.add('festivo');
+      const hc = document.createElement('div');
+      hc.className = 'chip festivo';
+      hc.textContent = `${countryFlag()} ${holidays.join(' · ')}`;
+      hc.title = holidays.join(' · ');
+      cell.appendChild(hc);
+    }
+
     const items = itemsForDay(acts, doneMap, iso);
     items.slice(0, MAX_CHIPS).forEach(it => {
       const c = document.createElement('div');
@@ -237,6 +312,14 @@ function dayBlock(d, items, todayIso, noHead = false) {
     head.textContent = `${t('dows_short')[(d.getDay() + 6) % 7]} ${d.getDate()}`;
     head.addEventListener('click', () => gotoDay(d));
     box.appendChild(head);
+  }
+
+  const holidays = holidayNames(iso);
+  if (holidays.length) {
+    const hr = document.createElement('div');
+    hr.className = 'holiday-row';
+    hr.textContent = `${countryFlag()} ${holidays.join(' · ')}`;
+    box.appendChild(hr);
   }
 
   if (!items.length) {

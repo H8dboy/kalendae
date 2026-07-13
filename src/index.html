@@ -40,7 +40,7 @@
       </div>
       <div id="calHead">
         <button class="icon-btn" id="calPrev" aria-label="Precedente">‹</button>
-        <div id="calLabel"></div>
+        <button id="calLabel" aria-label="Vai a mese e anno"></button>
         <button class="icon-btn" id="calNext" aria-label="Successivo">›</button>
         <button class="btn small" id="todayBtn"></button>
       </div>
@@ -190,6 +190,23 @@
     <div class="acts">
       <button class="btn" id="promptNo"></button>
       <button class="btn accent" id="promptOk"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale "vai a mese e anno" ============ -->
+<div class="overlay" id="ymOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ymTitle">
+    <h3 id="ymTitle" data-i18n="pick_month_year"></h3>
+    <label for="ymYear" data-i18n="year_label"></label>
+    <div class="row2" style="align-items:stretch">
+      <button class="btn" id="ymPrev" aria-label="Anno precedente" style="flex:0 0 56px">‹</button>
+      <input id="ymYear" type="number" min="1583" max="4000" inputmode="numeric" />
+      <button class="btn" id="ymNext" aria-label="Anno successivo" style="flex:0 0 56px">›</button>
+    </div>
+    <div class="ym-grid" id="ymMonths"></div>
+    <div class="acts">
+      <button class="btn" id="ymCancel" data-i18n="close"></button>
     </div>
   </div>
 </div>

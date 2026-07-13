@@ -144,6 +144,7 @@ async function boot() {
   const settings = await settingsView.loadSettings();
   setLang(settings.lang);
   calendar.setFirstDay(+settings.first_day);
+  calendar.setCountry(settings.country);
 
   // etichette statiche marcate con data-i18n nell'HTML
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -169,6 +170,7 @@ async function boot() {
     onChange: s => {
       setLang(s.lang);
       calendar.setFirstDay(+s.first_day);
+      calendar.setCountry(s.country);
     },
   });
   initMenu();

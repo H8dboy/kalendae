@@ -6,11 +6,12 @@ import { toast } from '../ui/toast.js';
 import { confirmDialog } from '../ui/modal.js';
 import { buildBackup, parseBackup } from '../logic/backup.js';
 import { buildIcs } from '../logic/ics.js';
+import { COUNTRIES } from '../logic/holidays.js';
 
 const $ = id => document.getElementById(id);
 
 // Valori di default delle impostazioni (chiave → default).
-export const DEFAULTS = { theme: 'dark', first_day: '1', notifications: '1', lang: 'it' };
+export const DEFAULTS = { theme: 'dark', first_day: '1', notifications: '1', lang: 'it', country: '' };
 
 let settings = { ...DEFAULTS };
 let onSettingsChange = null;
@@ -60,6 +61,11 @@ export function render() {
 
   rowSelect(t('set_theme'), 'theme', [['dark', t('theme_dark')], ['light', t('theme_light')]]);
   rowSelect(t('set_first_day'), 'first_day', [['1', t('monday')], ['0', t('sunday')]]);
+  // Stato per le festività: bandiera + nome; le feste appaiono sul calendario.
+  rowSelect(t('set_country'), 'country', [
+    ['', t('country_none')],
+    ...COUNTRIES.map(c => [c.code, `${c.flag} ${c.name}`]),
+  ]);
   // Lingue: en/sq si attivano aggiungendo i file in js/i18n/ (vedi i18n/index.js).
   rowSelect(t('set_language'), 'lang', [['it', 'Italiano']]);
 
