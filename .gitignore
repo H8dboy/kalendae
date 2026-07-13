@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Chiave di firma Android: MAI su git (backup manuale in luogo sicuro!)
+*.keystore
+keystore.properties
+KEYSTORE-PASSWORD.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
