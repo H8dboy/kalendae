@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>AGENDA/H8</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- header: nome a sinistra, icone Task/Note e menu a destra -->
+  <header id="topbar">
+    <button class="icon-btn" id="backBtn" aria-label="Indietro" hidden>←</button>
+    <h1 id="screenTitle">AGENDA/H8</h1>
+    <div class="spacer"></div>
+    <button class="icon-btn" id="searchBtn" aria-label="Cerca">⌕</button>
+    <button class="icon-btn" id="tasksBtn" aria-label="Task">☑</button>
+    <button class="icon-btn" id="notesBtn" aria-label="Note">📄</button>
+    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-haspopup="true">⋮</button>
+  </header>
+
+  <!-- menu ⋮ -->
+  <nav id="menuPop" aria-label="Menu">
+    <button id="mArchive">🗂 <span data-i18n="archive"></span></button>
+    <button id="mStats">📊 <span data-i18n="stats"></span></button>
+    <button id="mSettings">⚙ <span data-i18n="settings"></span></button>
+  </nav>
+
+  <main>
+    <!-- ============ CALENDARIO (schermata principale) ============ -->
+    <section class="screen" id="screen-calendar">
+      <div id="quickadd">
+        <input type="text" id="quickInput" autocomplete="off" />
+      </div>
+      <div id="pickBanner" hidden>
+        <span id="pickLabel"></span>
+        <button class="btn small" id="pickCancel">✕</button>
+      </div>
+      <div id="calHead">
+        <button class="icon-btn" id="calPrev" aria-label="Precedente">‹</button>
+        <div id="calLabel"></div>
+        <button class="icon-btn" id="calNext" aria-label="Successivo">›</button>
+        <button class="btn small" id="todayBtn"></button>
+      </div>
+      <div id="calTabs" role="tablist">
+        <button class="tab active" data-view="month" role="tab"></button>
+        <button class="tab" data-view="week" role="tab"></button>
+        <button class="tab" data-view="day" role="tab"></button>
+      </div>
+      <div id="calBody"></div>
+      <button class="fab" id="fabCal" aria-label="Nuova attività">+</button>
+    </section>
+
+    <!-- ============ TASK ============ -->
+    <section class="screen" id="screen-tasks" hidden>
+      <div class="filters" id="taskFilters"></div>
+      <div class="scroll" id="taskList"></div>
+      <button class="fab" id="fabTask" aria-label="Nuova task">+</button>
+    </section>
+
+    <!-- ============ NOTE: cartelle → elenco note → editor ============ -->
+    <section class="screen" id="screen-notes" hidden>
+      <div class="scroll" id="folderList"></div>
+      <button class="fab" id="fabFolder" aria-label="Nuova cartella">+</button>
+    </section>
+
+    <section class="screen" id="screen-notelist" hidden>
+      <div class="scroll" id="noteList"></div>
+      <button class="fab" id="fabNote" aria-label="Nuova nota">+</button>
+    </section>
+
+    <section class="screen" id="screen-noteedit" hidden>
+      <div id="noteEditor">
+        <input type="text" id="noteTitle" />
+        <textarea id="noteBody"></textarea>
+        <div id="noteMeta"></div>
+      </div>
+    </section>
+
+    <!-- ============ RICERCA ============ -->
+    <section class="screen" id="screen-search" hidden>
+      <div id="searchBar">
+        <input type="search" id="searchInput" autocomplete="off" />
+      </div>
+      <div class="scroll" id="searchResults"></div>
+    </section>
+
+    <!-- ============ ARCHIVIO FATTE ============ -->
+    <section class="screen" id="screen-archive" hidden>
+      <div class="filters" id="archiveFilters"></div>
+      <div class="scroll" id="archiveList"></div>
+    </section>
+
+    <!-- ============ STATISTICHE ============ -->
+    <section class="screen" id="screen-stats" hidden>
+      <div class="scroll" id="statsBody"></div>
+    </section>
+
+    <!-- ============ IMPOSTAZIONI ============ -->
+    <section class="screen" id="screen-settings" hidden>
+      <div class="scroll" id="settingsBody"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ modale attività ============ -->
+<div class="overlay" id="actOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="actTitle">
+    <h3 id="actTitle"></h3>
+    <label for="fTitle" data-i18n="title_label"></label>
+    <input id="fTitle" type="text" maxlength="200" />
+    <label for="fDesc" data-i18n="description_label"></label>
+    <textarea id="fDesc" maxlength="2000"></textarea>
+    <label for="fGroup" data-i18n="group_label"></label>
+    <select id="fGroup"></select>
+    <div class="row2">
+      <div>
+        <label for="fDate" data-i18n="date_label"></label>
+        <input id="fDate" type="date" />
+      </div>
+      <div>
+        <label for="fTime" data-i18n="time_label"></label>
+        <input id="fTime" type="time" />
+      </div>
+    </div>
+    <div class="hint" data-i18n="date_hint"></div>
+    <label data-i18n="priority_label"></label>
+    <div class="seg" id="fPrio">
+      <button type="button" class="pl0" data-p="0"></button>
+      <button type="button" class="pl1" data-p="1"></button>
+      <button type="button" class="pl2" data-p="2"></button>
+    </div>
+    <label for="fRec" data-i18n="recurrence_label"></label>
+    <select id="fRec">
+      <option value=""></option>
+      <option value="daily"></option>
+      <option value="weekly"></option>
+      <option value="monthly"></option>
+      <option value="yearly"></option>
+    </select>
+    <label class="chkrow"><input type="checkbox" id="fReminder" /> <span data-i18n="reminder_label"></span></label>
+    <label class="chkrow" id="doneChkRow"><input type="checkbox" id="fDone" /> <span data-i18n="done_label"></span></label>
+    <div class="row2" id="doneRow" hidden>
+      <div>
+        <label for="fDoneDate" data-i18n="done_date"></label>
+        <input id="fDoneDate" type="date" />
+      </div>
+      <div>
+        <label for="fDoneTime" data-i18n="done_time"></label>
+        <input id="fDoneTime" type="time" />
+      </div>
+    </div>
+    <div id="subBlock" hidden>
+      <label data-i18n="subtasks_label"></label>
+      <div id="subList"></div>
+      <div id="subAdd">
+        <input type="text" id="subInput" maxlength="200" />
+        <button class="btn small accent" id="subAddBtn"></button>
+      </div>
+    </div>
+    <div class="acts">
+      <button class="btn danger" id="actDelete" hidden></button>
+      <button class="btn" id="actPickDate" hidden></button>
+      <button class="btn" id="actCancel"></button>
+      <button class="btn accent" id="actSave"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale conferma ============ -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmMsg">
+    <h3 data-i18n="confirm_title"></h3>
+    <p id="confirmMsg" style="font-size:15px"></p>
+    <div class="acts">
+      <button class="btn" id="confirmNo"></button>
+      <button class="btn danger" id="confirmOk"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale prompt (nome gruppo/cartella) ============ -->
+<div class="overlay" id="promptOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="promptTitle">
+    <h3 id="promptTitle"></h3>
+    <label for="promptInput" id="promptLabel"></label>
+    <input id="promptInput" type="text" maxlength="60" />
+    <div class="acts">
+      <button class="btn" id="promptNo"></button>
+      <button class="btn accent" id="promptOk"></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

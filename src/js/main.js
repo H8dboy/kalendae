@@ -1,0 +1,196 @@
+// AGENDA/H8 — bootstrap e navigazione.
+// Concetto: il calendario è la schermata principale e l'unica in vista;
+// Task (☑) e Note (📄) si aprono dalle icone in alto a destra,
+// Archivio/Statistiche/Impostazioni dal menu ⋮.
+import { initDb } from './db.js';
+import * as db from './db.js';
+import { t, setLang } from './i18n/index.js';
+import { toast } from './ui/toast.js';
+import * as calendar from './views/calendar.js';
+import * as tasks from './views/tasks.js';
+import * as notes from './views/notes.js';
+import * as archive from './views/archive.js';
+import * as stats from './views/stats.js';
+import * as settingsView from './views/settings.js';
+import * as search from './views/search.js';
+import { initActivityModal } from './views/activityModal.js';
+import { parseQuickAdd } from './logic/quickadd.js';
+import { occursOn, toIso } from './logic/recurrence.js';
+
+const $ = id => document.getElementById(id);
+
+/* ================= navigazione ================= */
+// Stack di schermate: 'calendar' è la radice, ← risale di un livello.
+const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings'];
+let stack = ['calendar'];
+
+async function showScreen(name, title = null) {
+  const current = stack[stack.length - 1];
+  if (current === 'noteedit' && name !== 'noteedit') await notes.leaveEditor();
+
+  if (name === 'calendar') stack = ['calendar'];
+  else if (current !== name) stack.push(name);
+
+  for (const s of SCREENS) $('screen-' + s).hidden = s !== name;
+  $('backBtn').hidden = name === 'calendar';
+  $('screenTitle').textContent = title ?? titleFor(name);
+  $('tasksBtn').classList.toggle('active', name === 'tasks');
+  $('notesBtn').classList.toggle('active', ['notes', 'notelist', 'noteedit'].includes(name));
+  closeMenu();
+
+  // render della schermata appena aperta
+  if (name === 'calendar') calendar.render();
+  else if (name === 'tasks') tasks.render();
+  else if (name === 'notes') notes.renderFolders();
+  else if (name === 'search') search.focusSearch();
+  else if (name === 'archive') archive.render();
+  else if (name === 'stats') stats.render();
+  else if (name === 'settings') settingsView.render();
+}
+
+function titleFor(name) {
+  const map = {
+    calendar: t('app_name'), tasks: t('tasks'), notes: t('notes'),
+    search: t('search'), archive: t('archive'), stats: t('stats'), settings: t('settings'),
+  };
+  return map[name] ?? t('app_name');
+}
+
+async function goBack() {
+  const current = stack.pop();
+  if (current === 'noteedit') await notes.leaveEditor();
+  const prev = stack.pop() ?? 'calendar';
+  // showScreen ripushera prev; il titolo delle schermate note viene rigenerato dal render
+  await showScreen(prev === 'noteedit' ? 'notelist' : prev);
+  if (prev === 'notelist') notes.renderNoteList();
+}
+
+/* ================= menu ⋮ ================= */
+function closeMenu() { $('menuPop').classList.remove('open'); }
+
+function initMenu() {
+  $('menuBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    $('menuPop').classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#menuPop')) closeMenu();
+  });
+  $('mArchive').addEventListener('click', () => showScreen('archive'));
+  $('mStats').addEventListener('click', () => showScreen('stats'));
+  $('mSettings').addEventListener('click', () => showScreen('settings'));
+}
+
+/* ================= quick add ================= */
+function initQuickAdd() {
+  const input = $('quickInput');
+  input.placeholder = t('quickadd_placeholder');
+  input.addEventListener('keydown', async e => {
+    if (e.key !== 'Enter') return;
+    const parsed = parseQuickAdd(input.value);
+    if (!parsed.title) return;
+    await db.createActivity({
+      title: parsed.title,
+      date: parsed.date,
+      time: parsed.time,
+      reminder: !!(parsed.date && parsed.time),
+    });
+    input.value = '';
+    toast(`${t('quickadd_added')} ✓ ${parsed.date ?? t('no_deadline')}${parsed.time ? ' ' + parsed.time : ''}`);
+    calendar.render();
+  });
+}
+
+/* ================= notifiche promemoria ================= */
+// Ogni 30s: se un'attività con promemoria attivo cade oggi all'ora corrente,
+// invia una notifica di sistema (una sola volta per sessione).
+const notified = new Set();
+
+async function ensureNotifPermission() {
+  const n = window.__TAURI__?.notification;
+  if (!n) return false;
+  if (await n.isPermissionGranted()) return true;
+  return (await n.requestPermission()) === 'granted';
+}
+
+async function checkReminders() {
+  if (settingsView.getSetting('notifications') !== '1') return;
+  const n = window.__TAURI__?.notification;
+  if (!n) return;
+  const now = new Date();
+  const today = toIso(now);
+  const hm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const acts = await db.listDatedBetween(today, today);
+  for (const a of acts) {
+    if (!a.reminder || a.done || !a.time) continue;
+    if (!occursOn(a, today) || a.time !== hm) continue;
+    const key = `${a.id}|${today}`;
+    if (notified.has(key)) continue;
+    notified.add(key);
+    n.sendNotification({ title: t('notif_title'), body: `${a.time} — ${a.title}` });
+  }
+}
+
+/* ================= bootstrap ================= */
+async function boot() {
+  try {
+    await initDb();
+  } catch (err) {
+    document.body.innerHTML =
+      `<p style="padding:24px;font-family:monospace">Errore database: ${err}</p>`;
+    return;
+  }
+
+  const settings = await settingsView.loadSettings();
+  setLang(settings.lang);
+  calendar.setFirstDay(+settings.first_day);
+
+  // etichette statiche marcate con data-i18n nell'HTML
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  $('confirmNo').textContent = t('cancel');
+  $('confirmOk').textContent = t('delete');
+  $('promptNo').textContent = t('cancel');
+  $('promptOk').textContent = t('save');
+
+  initActivityModal({
+    onPickDate: async id => {
+      const a = await db.getActivity(id);
+      await showScreen('calendar');
+      calendar.enterPickMode(id, a.title);
+    },
+  });
+  calendar.initCalendar();
+  tasks.initTasks();
+  notes.initNotes({ showScreen });
+  search.initSearch();
+  settingsView.initSettings({
+    onChange: s => {
+      setLang(s.lang);
+      calendar.setFirstDay(+s.first_day);
+    },
+  });
+  initMenu();
+  initQuickAdd();
+
+  // header
+  $('backBtn').addEventListener('click', goBack);
+  $('tasksBtn').addEventListener('click', () => showScreen('tasks'));
+  $('notesBtn').addEventListener('click', () => showScreen('notes'));
+  $('searchBtn').addEventListener('click', () => showScreen('search'));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && stack[stack.length - 1] !== 'calendar') goBack();
+  });
+
+  await showScreen('calendar');
+
+  if (settings.notifications === '1') {
+    const ok = await ensureNotifPermission();
+    if (!ok) toast(t('notif_denied'));
+  }
+  setInterval(checkReminders, 30000);
+  checkReminders();
+}
+
+boot();

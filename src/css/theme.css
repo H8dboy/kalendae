@@ -1,0 +1,37 @@
+/* AGENDA/H8 — tema. Scuro di default, chiaro via [data-theme="light"]. */
+:root {
+  --bg: #0b0e0c;
+  --panel: #11150f;
+  --panel2: #161b12;
+  --line: #1f2a1c;
+  --ink: #d6e2cf;
+  --dim: #6d7a66;
+  --neon: #39ff6e;
+  --neon-dim: #1d7a3c;
+  --neon-ink: #04140a;   /* testo sopra sfondo neon */
+  --warn: #ffb347;
+  --danger: #ff5c5c;
+  --prio-low: #4d8fff;
+  --prio-mid: #ffb347;
+  --prio-high: #ff5c5c;
+  --radius: 6px;
+  --tap: 44px;           /* touch target minimo */
+  --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+}
+
+:root[data-theme="light"] {
+  --bg: #f2f5f0;
+  --panel: #ffffff;
+  --panel2: #e9efe6;
+  --line: #cfdac9;
+  --ink: #17211a;
+  --dim: #5c6a58;
+  --neon: #0c8f3f;
+  --neon-dim: #0c8f3f;
+  --neon-ink: #ffffff;
+  --warn: #a35f00;
+  --danger: #c02929;
+  --prio-low: #1d5fd6;
+  --prio-mid: #a35f00;
+  --prio-high: #c02929;
+}
