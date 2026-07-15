@@ -166,6 +166,102 @@ export const saveNote = (id, title, body) =>
 
 export const deleteNote = id => execute('DELETE FROM notes WHERE id=$1', [id]);
 
+/* ---------------- ore di lavoro ---------------- */
+export const listWorkHours = (from, to) =>
+  select('SELECT date, minutes FROM work_hours WHERE date >= $1 AND date <= $2', [from, to]);
+
+export const getWorkMinutes = async date =>
+  (await select('SELECT minutes FROM work_hours WHERE date=$1', [date]))[0]?.minutes ?? 0;
+
+// 0 minuti = giorno senza ore: la riga si elimina invece di tenere zeri.
+export async function setWorkMinutes(date, minutes) {
+  if (minutes > 0) {
+    await execute('INSERT OR REPLACE INTO work_hours (date, minutes) VALUES ($1,$2)', [date, minutes]);
+  } else {
+    await execute('DELETE FROM work_hours WHERE date=$1', [date]);
+  }
+}
+
+/* ---------------- fitness: sport ---------------- */
+export const listSports = () =>
+  select(`SELECT s.*,
+            (SELECT COUNT(*) FROM workout_plans p WHERE p.sport_id=s.id) AS plan_count,
+            (SELECT COUNT(*) FROM workouts w WHERE w.sport_id=s.id) AS workout_count
+          FROM sports s ORDER BY s.id`);
+
+export async function createSport(name, icon) {
+  const r = await execute('INSERT INTO sports (name, icon) VALUES ($1,$2)', [name, icon]);
+  return r.lastInsertId;
+}
+
+export const updateSport = (id, name, icon) =>
+  execute('UPDATE sports SET name=$1, icon=$2 WHERE id=$3', [name, icon, id]);
+
+// Eliminazione esplicita dei figli (stessa ragione di deleteActivity).
+export async function deleteSport(id) {
+  await execute('DELETE FROM plan_exercises WHERE plan_id IN (SELECT id FROM workout_plans WHERE sport_id=$1)', [id]);
+  await execute('DELETE FROM workouts WHERE sport_id=$1', [id]);
+  await execute('DELETE FROM workout_plans WHERE sport_id=$1', [id]);
+  await execute('DELETE FROM sports WHERE id=$1', [id]);
+}
+
+/* ---------------- fitness: schede ---------------- */
+export const listPlans = sportId =>
+  select(`SELECT p.*,
+            (SELECT COUNT(*) FROM plan_exercises e WHERE e.plan_id=p.id) AS exercise_count
+          FROM workout_plans p WHERE p.sport_id=$1 ORDER BY p.id`, [sportId]);
+
+export const getPlan = async id =>
+  (await select('SELECT * FROM workout_plans WHERE id=$1', [id]))[0];
+
+export async function createPlan(sportId, name) {
+  const r = await execute('INSERT INTO workout_plans (sport_id, name) VALUES ($1,$2)', [sportId, name]);
+  return r.lastInsertId;
+}
+
+export const renamePlan = (id, name) =>
+  execute('UPDATE workout_plans SET name=$1 WHERE id=$2', [name, id]);
+
+export async function deletePlan(id) {
+  await execute('DELETE FROM plan_exercises WHERE plan_id=$1', [id]);
+  await execute('UPDATE workouts SET plan_id=NULL WHERE plan_id=$1', [id]);
+  await execute('DELETE FROM workout_plans WHERE id=$1', [id]);
+}
+
+/* ---------------- fitness: esercizi della scheda ---------------- */
+export const listExercises = planId =>
+  select('SELECT * FROM plan_exercises WHERE plan_id=$1 ORDER BY position, id', [planId]);
+
+export async function addExercise(planId, e) {
+  const pos = (await select('SELECT COALESCE(MAX(position),0)+1 AS p FROM plan_exercises WHERE plan_id=$1', [planId]))[0].p;
+  await execute(
+    'INSERT INTO plan_exercises (plan_id, name, sets, reps, load, rest, notes, position) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+    [planId, e.name, e.sets ?? '', e.reps ?? '', e.load ?? '', e.rest ?? '', e.notes ?? '', pos]);
+}
+
+export const updateExercise = (id, e) =>
+  execute('UPDATE plan_exercises SET name=$1, sets=$2, reps=$3, load=$4, rest=$5, notes=$6 WHERE id=$7',
+    [e.name, e.sets ?? '', e.reps ?? '', e.load ?? '', e.rest ?? '', e.notes ?? '', id]);
+
+export const deleteExercise = id => execute('DELETE FROM plan_exercises WHERE id=$1', [id]);
+
+/* ---------------- fitness: diario allenamenti ---------------- */
+export const listWorkouts = (sportId, limit = 100) =>
+  select(`SELECT w.*, p.name AS plan_name FROM workouts w
+          LEFT JOIN workout_plans p ON p.id = w.plan_id
+          WHERE w.sport_id=$1 ORDER BY w.date DESC, w.id DESC LIMIT $2`, [sportId, limit]);
+
+export async function addWorkout(w) {
+  await execute('INSERT INTO workouts (sport_id, plan_id, date, minutes, notes) VALUES ($1,$2,$3,$4,$5)',
+    [w.sport_id, w.plan_id ?? null, w.date, w.minutes ?? 0, w.notes ?? '']);
+}
+
+export const updateWorkout = (id, w) =>
+  execute('UPDATE workouts SET plan_id=$1, date=$2, minutes=$3, notes=$4 WHERE id=$5',
+    [w.plan_id ?? null, w.date, w.minutes ?? 0, w.notes ?? '', id]);
+
+export const deleteWorkout = id => execute('DELETE FROM workouts WHERE id=$1', [id]);
+
 /* ---------------- impostazioni ---------------- */
 export async function getSettings() {
   const rows = await select('SELECT key, value FROM settings');
@@ -223,6 +319,11 @@ export async function dumpAll() {
     note_folders: await select('SELECT * FROM note_folders'),
     notes: await select('SELECT * FROM notes'),
     settings: await select('SELECT * FROM settings'),
+    work_hours: await select('SELECT * FROM work_hours'),
+    sports: await select('SELECT * FROM sports'),
+    workout_plans: await select('SELECT * FROM workout_plans'),
+    plan_exercises: await select('SELECT * FROM plan_exercises'),
+    workouts: await select('SELECT * FROM workouts'),
   };
 }
 
@@ -235,6 +336,11 @@ export async function restoreAll(data) {
   await execute('DELETE FROM notes');
   await execute('DELETE FROM note_folders');
   await execute('DELETE FROM settings');
+  await execute('DELETE FROM work_hours');
+  await execute('DELETE FROM plan_exercises');
+  await execute('DELETE FROM workouts');
+  await execute('DELETE FROM workout_plans');
+  await execute('DELETE FROM sports');
   for (const g of data.groups)
     await execute('INSERT INTO groups (id,name,created_at) VALUES ($1,$2,$3)', [g.id, g.name, g.created_at]);
   for (const a of data.activities)
@@ -254,4 +360,19 @@ export async function restoreAll(data) {
       [n.id, n.folder_id, n.title, n.body, n.created_at, n.updated_at]);
   for (const s of data.settings)
     await execute('INSERT INTO settings (key,value) VALUES ($1,$2)', [s.key, s.value]);
+  // Tabelle aggiunte dopo: i backup vecchi non le hanno (?? []).
+  for (const w of data.work_hours ?? [])
+    await execute('INSERT INTO work_hours (date,minutes) VALUES ($1,$2)', [w.date, w.minutes]);
+  for (const s of data.sports ?? [])
+    await execute('INSERT INTO sports (id,name,icon,created_at) VALUES ($1,$2,$3,$4)',
+      [s.id, s.name, s.icon, s.created_at]);
+  for (const p of data.workout_plans ?? [])
+    await execute('INSERT INTO workout_plans (id,sport_id,name,created_at) VALUES ($1,$2,$3,$4)',
+      [p.id, p.sport_id, p.name, p.created_at]);
+  for (const e of data.plan_exercises ?? [])
+    await execute('INSERT INTO plan_exercises (id,plan_id,name,sets,reps,load,rest,notes,position) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+      [e.id, e.plan_id, e.name, e.sets, e.reps, e.load, e.rest, e.notes, e.position]);
+  for (const w of data.workouts ?? [])
+    await execute('INSERT INTO workouts (id,sport_id,plan_id,date,minutes,notes,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [w.id, w.sport_id, w.plan_id, w.date, w.minutes, w.notes, w.created_at]);
 }

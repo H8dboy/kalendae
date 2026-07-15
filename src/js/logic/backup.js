@@ -2,7 +2,9 @@
 // Il formato porta una versione: se in futuro lo schema cambia, l'import
 // potrà convertire i backup vecchi.
 
-export const BACKUP_VERSION = 1;
+// v2: aggiunte work_hours, sports, workout_plans, plan_exercises, workouts
+// (opzionali in import: i backup v1 restano importabili).
+export const BACKUP_VERSION = 2;
 
 export function buildBackup(dump, now = new Date()) {
   return JSON.stringify(

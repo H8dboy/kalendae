@@ -6,6 +6,7 @@ import { toast } from '../ui/toast.js';
 import { esc } from '../ui/modal.js';
 import { occursOn, toIso, parseIso } from '../logic/recurrence.js';
 import { holidayMap, countryByCode, MIN_YEAR, MAX_YEAR } from '../logic/holidays.js';
+import { hmToMinutes, minutesToHm, fmtMinutes, fmtMinutesShort, sumMonth } from '../logic/workhours.js';
 import { openActivityModal } from './activityModal.js';
 
 const $ = id => document.getElementById(id);
@@ -150,12 +151,44 @@ async function onDayTap(dateIso) {
   }
 }
 
+/* ---------- ore di lavoro ---------- */
+/** Modale h/m per registrare le ore lavorate del giorno. */
+async function openWorkModal(dateIso) {
+  const ov = document.getElementById('whOverlay');
+  $('whDateLabel').textContent = `${t('work_hours_label')} ${dateIso}`;
+  const { h, m } = minutesToHm(await db.getWorkMinutes(dateIso));
+  $('whH').value = h || '';
+  $('whM').value = m || '';
+
+  const done = () => {
+    ov.classList.remove('open');
+    $('whSave').onclick = $('whCancel').onclick = $('whClear').onclick = ov.onclick = null;
+  };
+  $('whCancel').onclick = done;
+  ov.onclick = e => { if (e.target === ov) done(); };
+  $('whClear').onclick = async () => {
+    await db.setWorkMinutes(dateIso, 0);
+    done();
+    render();
+  };
+  $('whSave').onclick = async () => {
+    await db.setWorkMinutes(dateIso, hmToMinutes($('whH').value, $('whM').value));
+    done();
+    toast(t('saved'));
+    render();
+  };
+  ov.classList.add('open');
+  $('whH').focus();
+}
+
 /* ---------- caricamento dati del periodo visibile ---------- */
 async function loadRange(fromIso, toIsoStr) {
   const acts = await db.listDatedBetween(fromIso, toIsoStr);
   const recDone = await db.listRecurrenceDone(fromIso, toIsoStr);
   const doneMap = new Set(recDone.map(r => `${r.activity_id}|${r.occurrence_date}`));
-  return { acts, doneMap };
+  const wh = await db.listWorkHours(fromIso, toIsoStr);
+  const whMap = new Map(wh.map(r => [r.date, r.minutes]));
+  return { acts, doneMap, wh, whMap };
 }
 
 // Le occorrenze di un giorno: attività secche del giorno + ricorrenti che vi cadono.
@@ -202,7 +235,7 @@ async function renderMonth() {
   const gridEnd = new Date(gridStart);
   gridEnd.setDate(gridEnd.getDate() + total - 1);
 
-  const { acts, doneMap } = await loadRange(toIso(gridStart), toIso(gridEnd));
+  const { acts, doneMap, wh, whMap } = await loadRange(toIso(gridStart), toIso(gridEnd));
   const todayIso = toIso(new Date());
 
   const grid = document.createElement('div');
@@ -225,6 +258,20 @@ async function renderMonth() {
     num.className = 'num';
     num.textContent = d.getDate();
     cell.appendChild(num);
+
+    // angolo in alto a destra: ore lavorate del giorno (⏱ per aggiungerle)
+    if (d.getMonth() === m) {
+      const minutes = whMap.get(iso) ?? 0;
+      const wb = document.createElement('button');
+      wb.className = 'whbadge' + (minutes > 0 ? ' has' : '');
+      wb.textContent = minutes > 0 ? fmtMinutesShort(minutes) : '⏱';
+      wb.setAttribute('aria-label', `${t('work_hours_label')} ${iso}`);
+      wb.addEventListener('click', ev => {
+        ev.stopPropagation();
+        openWorkModal(iso);
+      });
+      cell.appendChild(wb);
+    }
 
     const holidays = holidayNames(iso);
     if (holidays.length) {
@@ -261,7 +308,18 @@ async function renderMonth() {
     cell.addEventListener('click', () => onDayTap(iso));
     grid.appendChild(cell);
   }
-  $('calBody').replaceChildren(grid);
+
+  // totale ore lavorate del mese in vista (solo giorni del mese, non i bordi grigi)
+  const ym = `${y}-${String(m + 1).padStart(2, '0')}`;
+  const monthTotal = sumMonth(wh, ym);
+  const children = [grid];
+  if (monthTotal > 0) {
+    const totRow = document.createElement('div');
+    totRow.id = 'whTotal';
+    totRow.textContent = `⏱ ${t('work_month_total')}: ${fmtMinutes(monthTotal)}`;
+    children.push(totRow);
+  }
+  $('calBody').replaceChildren(...children);
 }
 
 function gotoDay(d) {
@@ -279,13 +337,13 @@ async function renderWeek() {
   $('calLabel').textContent =
     `${start.getDate()} ${t('months')[start.getMonth()].slice(0, 3)} – ${end.getDate()} ${t('months')[end.getMonth()].slice(0, 3)} ${end.getFullYear()}`;
 
-  const { acts, doneMap } = await loadRange(toIso(start), toIso(end));
+  const { acts, doneMap, whMap } = await loadRange(toIso(start), toIso(end));
   const todayIso = toIso(new Date());
   const wrap = document.createElement('div');
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
-    wrap.appendChild(dayBlock(d, itemsForDay(acts, doneMap, toIso(d)), todayIso));
+    wrap.appendChild(dayBlock(d, itemsForDay(acts, doneMap, toIso(d)), todayIso, false, whMap));
   }
   $('calBody').replaceChildren(wrap);
 }
@@ -294,14 +352,16 @@ async function renderDay() {
   const iso = toIso(cursor);
   $('calLabel').textContent =
     `${t('dows_long')[(cursor.getDay() + 6) % 7]} ${cursor.getDate()} ${t('months')[cursor.getMonth()]} ${cursor.getFullYear()}`;
-  const { acts, doneMap } = await loadRange(iso, iso);
+  const { acts, doneMap, whMap } = await loadRange(iso, iso);
   const wrap = document.createElement('div');
-  wrap.appendChild(dayBlock(cursor, itemsForDay(acts, doneMap, iso), toIso(new Date()), true));
+  wrap.appendChild(dayBlock(cursor, itemsForDay(acts, doneMap, iso), toIso(new Date()), true, whMap, true));
   $('calBody').replaceChildren(wrap);
 }
 
-/** Blocco-giorno per viste settimana/giorno: intestazione + righe evento. */
-function dayBlock(d, items, todayIso, noHead = false) {
+/** Blocco-giorno per viste settimana/giorno: intestazione + righe evento.
+ *  In vista giorno (alwaysWork) la riga ore lavoro appare sempre come punto
+ *  d'ingresso; in vista settimana solo se il giorno ha già ore registrate. */
+function dayBlock(d, items, todayIso, noHead = false, whMap = null, alwaysWork = false) {
   const iso = toIso(d);
   const box = document.createElement('div');
   box.className = 'agenda-day' + (iso === todayIso ? ' today' : '');
@@ -320,6 +380,15 @@ function dayBlock(d, items, todayIso, noHead = false) {
     hr.className = 'holiday-row';
     hr.textContent = `${countryFlag()} ${holidays.join(' · ')}`;
     box.appendChild(hr);
+  }
+
+  const workMin = whMap?.get(iso) ?? 0;
+  if (alwaysWork || workMin > 0) {
+    const wr = document.createElement('button');
+    wr.className = 'work-row' + (workMin > 0 ? ' has' : '');
+    wr.textContent = `⏱ ${t('work_row')}: ${workMin > 0 ? fmtMinutes(workMin) : '—'}`;
+    wr.addEventListener('click', () => openWorkModal(iso));
+    box.appendChild(wr);
   }
 
   if (!items.length) {

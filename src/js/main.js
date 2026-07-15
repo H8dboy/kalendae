@@ -13,6 +13,7 @@ import * as archive from './views/archive.js';
 import * as stats from './views/stats.js';
 import * as settingsView from './views/settings.js';
 import * as search from './views/search.js';
+import * as fitness from './views/fitness.js';
 import { initActivityModal } from './views/activityModal.js';
 import { parseQuickAdd } from './logic/quickadd.js';
 import { occursOn, toIso } from './logic/recurrence.js';
@@ -21,7 +22,7 @@ const $ = id => document.getElementById(id);
 
 /* ================= navigazione ================= */
 // Stack di schermate: 'calendar' è la radice, ← risale di un livello.
-const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings'];
+const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings', 'fitness', 'sport', 'plan'];
 let stack = ['calendar'];
 
 async function showScreen(name, title = null) {
@@ -46,12 +47,16 @@ async function showScreen(name, title = null) {
   else if (name === 'archive') archive.render();
   else if (name === 'stats') stats.render();
   else if (name === 'settings') settingsView.render();
+  else if (name === 'fitness') fitness.renderSports();
+  else if (name === 'sport') fitness.renderSport();
+  else if (name === 'plan') fitness.renderPlan();
 }
 
 function titleFor(name) {
   const map = {
     calendar: t('app_name'), tasks: t('tasks'), notes: t('notes'),
     search: t('search'), archive: t('archive'), stats: t('stats'), settings: t('settings'),
+    fitness: t('fitness'),   // 'sport' e 'plan' impostano il titolo nel loro render
   };
   return map[name] ?? t('app_name');
 }
@@ -76,6 +81,7 @@ function initMenu() {
   document.addEventListener('click', e => {
     if (!e.target.closest('#menuPop')) closeMenu();
   });
+  $('mFitness').addEventListener('click', () => showScreen('fitness'));
   $('mArchive').addEventListener('click', () => showScreen('archive'));
   $('mStats').addEventListener('click', () => showScreen('stats'));
   $('mSettings').addEventListener('click', () => showScreen('settings'));
@@ -165,6 +171,7 @@ async function boot() {
   calendar.initCalendar();
   tasks.initTasks();
   notes.initNotes({ showScreen });
+  fitness.initFitness({ showScreen });
   search.initSearch();
   settingsView.initSettings({
     onChange: s => {

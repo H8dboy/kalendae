@@ -77,6 +77,62 @@ fn migrations() -> Vec<Migration> {
                 value TEXT NOT NULL
             );
         "#,
+    },
+    Migration {
+        version: 2,
+        description: "ore_lavoro_e_fitness",
+        kind: MigrationKind::Up,
+        sql: r#"
+            -- Ore di lavoro registrate per giorno (una riga per giorno).
+            CREATE TABLE work_hours (
+                date    TEXT PRIMARY KEY,          -- 'YYYY-MM-DD'
+                minutes INTEGER NOT NULL DEFAULT 0
+            );
+
+            -- Sport dell'utente (palestra, nuoto, ...): ognuno ha le sue
+            -- schede di allenamento e il suo diario.
+            CREATE TABLE sports (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT NOT NULL,
+                icon       TEXT NOT NULL DEFAULT '🏋',
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+
+            -- Scheda/lista di allenamento di uno sport (es. "Scheda A", "Vasche martedì").
+            CREATE TABLE workout_plans (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                sport_id   INTEGER NOT NULL REFERENCES sports(id) ON DELETE CASCADE,
+                name       TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+
+            -- Esercizi di una scheda: campi testuali liberi così valgono per
+            -- qualunque sport (serie '4', reps '12' o '50m', carico '60kg' o 'ritmo gara').
+            CREATE TABLE plan_exercises (
+                id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                plan_id  INTEGER NOT NULL REFERENCES workout_plans(id) ON DELETE CASCADE,
+                name     TEXT NOT NULL,
+                sets     TEXT NOT NULL DEFAULT '',
+                reps     TEXT NOT NULL DEFAULT '',
+                load     TEXT NOT NULL DEFAULT '',
+                rest     TEXT NOT NULL DEFAULT '',
+                notes    TEXT NOT NULL DEFAULT '',
+                position INTEGER NOT NULL DEFAULT 0
+            );
+
+            -- Diario: allenamenti svolti (data, scheda usata, durata, note).
+            CREATE TABLE workouts (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                sport_id   INTEGER NOT NULL REFERENCES sports(id) ON DELETE CASCADE,
+                plan_id    INTEGER REFERENCES workout_plans(id) ON DELETE SET NULL,
+                date       TEXT NOT NULL,              -- 'YYYY-MM-DD'
+                minutes    INTEGER NOT NULL DEFAULT 0, -- durata
+                notes      TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+            CREATE INDEX idx_workouts_date  ON workouts(date);
+            CREATE INDEX idx_workouts_sport ON workouts(sport_id);
+        "#,
     }]
 }
 

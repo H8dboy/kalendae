@@ -28,6 +28,17 @@ build desktop come bonus e iOS predisposto.
 - **Attività complete**: titolo, descrizione, gruppo, data/ora opzionali,
   priorità (bassa/media/alta con colore), ricorrenze (giornaliera /
   settimanale / mensile / annuale), sottoattività (checklist), promemoria.
+- **Ore di lavoro**: in vista mese ogni casella ha un ⏱ nell'angolo — lo
+  tocchi e registri le ore lavorate di quel giorno (ore e minuti). Il badge
+  mostra le ore del giorno (es. `7:30`) e sotto il calendario appare il
+  **totale del mese** (es. `142h 30m`). In vista giorno c'è la riga
+  "⏱ Lavoro" sempre pronta; "Azzera" cancella le ore del giorno.
+- **Fitness** (menu ⋮ → Fitness): crei i tuoi sport (nome + icona 🏋 🏊 🏃 …).
+  Ogni sport ha le sue **schede di allenamento** — liste di esercizi con
+  serie, ripetizioni/distanza, carico/intensità, recupero e note, quindi
+  vanno bene sia per la palestra ("Panca 4×12 60kg rec 90s") che per il
+  nuoto ("8×50m stile, ritmo gara") o altro — e un **diario allenamenti**
+  dove registri ogni sessione con data, scheda usata, durata e come è andata.
 - **Funzioni estese**: notifiche locali all'ora impostata, ricerca su
   eventi/task/note, filtri (gruppo, priorità, aperte/fatte), archivio delle
   fatte ordinato per data di completamento, statistiche (completate per
@@ -35,7 +46,7 @@ build desktop come bonus e iOS predisposto.
   quick-add con parsing italiano ("domani 15:00 chiamare commercialista"),
   tema scuro/chiaro, impostazioni (primo giorno settimana, notifiche, lingua).
 
-Menu **⋮** in alto a destra → Archivio fatte, Statistiche, Impostazioni.
+Menu **⋮** in alto a destra → Fitness, Archivio fatte, Statistiche, Impostazioni.
 
 ## Struttura del progetto
 
