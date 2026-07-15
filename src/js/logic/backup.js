@@ -3,8 +3,9 @@
 // potrà convertire i backup vecchi.
 
 // v2: aggiunte work_hours, sports, workout_plans, plan_exercises, workouts
-// (opzionali in import: i backup v1 restano importabili).
-export const BACKUP_VERSION = 2;
+// v3: aggiunte payment_categories, payment_plans, payment_installments
+// (tutte opzionali in import: i backup vecchi restano importabili).
+export const BACKUP_VERSION = 3;
 
 export function buildBackup(dump, now = new Date()) {
   return JSON.stringify(

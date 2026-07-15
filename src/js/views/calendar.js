@@ -7,6 +7,7 @@ import { esc } from '../ui/modal.js';
 import { occursOn, toIso, parseIso } from '../logic/recurrence.js';
 import { holidayMap, countryByCode, MIN_YEAR, MAX_YEAR } from '../logic/holidays.js';
 import { hmToMinutes, minutesToHm, fmtMinutes, fmtMinutesShort, sumMonth } from '../logic/workhours.js';
+import { decorationMap, chineseZodiac } from '../logic/decorations.js';
 import { openActivityModal } from './activityModal.js';
 
 const $ = id => document.getElementById(id);
@@ -35,6 +36,23 @@ function holidayNames(dateIso) {
 }
 
 const countryFlag = () => countryByCode(country)?.flag ?? '⭐';
+
+/* ---------- decorazioni festive (🎃 🎄 zodiaco cinese...) ---------- */
+const decoCache = new Map();   // anno → Map(dataIso → [{emoji,key}])
+
+function decosFor(dateIso) {
+  const y = +dateIso.slice(0, 4);
+  if (!decoCache.has(y)) decoCache.set(y, decorationMap(y));
+  return decoCache.get(y).get(dateIso) ?? [];
+}
+
+/** Tooltip della decorazione (per il CNY aggiunge l'animale dell'anno). */
+function decoTitle(d, dateIso) {
+  const base = t(d.key);
+  if (d.key !== 'deco_cny') return base;
+  const z = chineseZodiac(+dateIso.slice(0, 4));
+  return `${base} ${t('zodiac_' + z.key)}`;
+}
 
 /** (Ri)applica le etichette dipendenti dalla lingua: chiamata al boot e al cambio lingua. */
 export function refreshLabels() {
@@ -265,6 +283,16 @@ async function renderMonth() {
     num.textContent = d.getDate();
     cell.appendChild(num);
 
+    // decorazioni festive accanto al numero (🎃 🎄 🐎…)
+    const decos = decosFor(iso);
+    if (decos.length) {
+      const ds = document.createElement('span');
+      ds.className = 'deco';
+      ds.textContent = decos.map(x => x.emoji).join('');
+      ds.title = decos.map(x => decoTitle(x, iso)).join(' · ');
+      cell.appendChild(ds);
+    }
+
     // angolo in alto a destra: ore lavorate del giorno (⏱ per aggiungerle)
     if (d.getMonth() === m) {
       const minutes = whMap.get(iso) ?? 0;
@@ -414,6 +442,15 @@ function dayBlock(d, items, todayIso, noHead = false, whMap = null, alwaysWork =
     hr.className = 'holiday-row';
     hr.textContent = `${countryFlag()} ${holidays.join(' · ')}`;
     box.appendChild(hr);
+  }
+
+  // decorazioni festive: riga con emoji e nome (es. "🎃 Halloween")
+  const decos = decosFor(iso);
+  if (decos.length) {
+    const dr = document.createElement('div');
+    dr.className = 'holiday-row deco-row';
+    dr.textContent = decos.map(x => `${x.emoji} ${decoTitle(x, iso)}`).join(' · ');
+    box.appendChild(dr);
   }
 
   const workMin = whMap?.get(iso) ?? 0;

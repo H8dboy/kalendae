@@ -262,6 +262,70 @@ export const updateWorkout = (id, w) =>
 
 export const deleteWorkout = id => execute('DELETE FROM workouts WHERE id=$1', [id]);
 
+/* ---------------- pagamenti: sezioni ---------------- */
+export const listPayCategories = () =>
+  select(`SELECT c.*,
+            (SELECT COUNT(*) FROM payment_plans p WHERE p.category_id=c.id) AS plan_count,
+            (SELECT COALESCE(SUM(i.amount),0) FROM payment_installments i
+              JOIN payment_plans p ON p.id=i.plan_id WHERE p.category_id=c.id) AS paid
+          FROM payment_categories c ORDER BY c.id`);
+
+export async function createPayCategory(name, icon) {
+  const r = await execute('INSERT INTO payment_categories (name, icon) VALUES ($1,$2)', [name, icon]);
+  return r.lastInsertId;
+}
+
+export const updatePayCategory = (id, name, icon) =>
+  execute('UPDATE payment_categories SET name=$1, icon=$2 WHERE id=$3', [name, icon, id]);
+
+export async function deletePayCategory(id) {
+  await execute('DELETE FROM payment_installments WHERE plan_id IN (SELECT id FROM payment_plans WHERE category_id=$1)', [id]);
+  await execute('DELETE FROM payment_plans WHERE category_id=$1', [id]);
+  await execute('DELETE FROM payment_categories WHERE id=$1', [id]);
+}
+
+/* ---------------- pagamenti: piani ---------------- */
+export const listPayPlans = categoryId =>
+  select(`SELECT p.*,
+            (SELECT COALESCE(SUM(i.amount),0) FROM payment_installments i WHERE i.plan_id=p.id) AS paid,
+            (SELECT COUNT(*) FROM payment_installments i WHERE i.plan_id=p.id) AS installment_count
+          FROM payment_plans p WHERE p.category_id=$1 ORDER BY p.id`, [categoryId]);
+
+export const getPayPlan = async id =>
+  (await select(`SELECT p.*,
+      (SELECT COALESCE(SUM(i.amount),0) FROM payment_installments i WHERE i.plan_id=p.id) AS paid
+    FROM payment_plans p WHERE p.id=$1`, [id]))[0];
+
+export async function createPayPlan(categoryId, p) {
+  const r = await execute('INSERT INTO payment_plans (category_id, name, total, notes) VALUES ($1,$2,$3,$4)',
+    [categoryId, p.name, p.total ?? null, p.notes ?? '']);
+  return r.lastInsertId;
+}
+
+export const updatePayPlan = (id, p) =>
+  execute('UPDATE payment_plans SET name=$1, total=$2, notes=$3 WHERE id=$4',
+    [p.name, p.total ?? null, p.notes ?? '', id]);
+
+export async function deletePayPlan(id) {
+  await execute('DELETE FROM payment_installments WHERE plan_id=$1', [id]);
+  await execute('DELETE FROM payment_plans WHERE id=$1', [id]);
+}
+
+/* ---------------- pagamenti: rate ---------------- */
+export const listInstallments = planId =>
+  select('SELECT * FROM payment_installments WHERE plan_id=$1 ORDER BY date DESC, id DESC', [planId]);
+
+export const addInstallment = (planId, i) =>
+  execute('INSERT INTO payment_installments (plan_id, date, amount, notes) VALUES ($1,$2,$3,$4)',
+    [planId, i.date, i.amount, i.notes ?? '']);
+
+export const updateInstallment = (id, i) =>
+  execute('UPDATE payment_installments SET date=$1, amount=$2, notes=$3 WHERE id=$4',
+    [i.date, i.amount, i.notes ?? '', id]);
+
+export const deleteInstallment = id =>
+  execute('DELETE FROM payment_installments WHERE id=$1', [id]);
+
 /* ---------------- impostazioni ---------------- */
 export async function getSettings() {
   const rows = await select('SELECT key, value FROM settings');
@@ -332,6 +396,9 @@ export async function dumpAll() {
     workout_plans: await select('SELECT * FROM workout_plans'),
     plan_exercises: await select('SELECT * FROM plan_exercises'),
     workouts: await select('SELECT * FROM workouts'),
+    payment_categories: await select('SELECT * FROM payment_categories'),
+    payment_plans: await select('SELECT * FROM payment_plans'),
+    payment_installments: await select('SELECT * FROM payment_installments'),
   };
 }
 
@@ -349,6 +416,9 @@ export async function restoreAll(data) {
   await execute('DELETE FROM workouts');
   await execute('DELETE FROM workout_plans');
   await execute('DELETE FROM sports');
+  await execute('DELETE FROM payment_installments');
+  await execute('DELETE FROM payment_plans');
+  await execute('DELETE FROM payment_categories');
   for (const g of data.groups)
     await execute('INSERT INTO groups (id,name,created_at) VALUES ($1,$2,$3)', [g.id, g.name, g.created_at]);
   for (const a of data.activities)
@@ -383,4 +453,13 @@ export async function restoreAll(data) {
   for (const w of data.workouts ?? [])
     await execute('INSERT INTO workouts (id,sport_id,plan_id,date,minutes,notes,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)',
       [w.id, w.sport_id, w.plan_id, w.date, w.minutes, w.notes, w.created_at]);
+  for (const c of data.payment_categories ?? [])
+    await execute('INSERT INTO payment_categories (id,name,icon,created_at) VALUES ($1,$2,$3,$4)',
+      [c.id, c.name, c.icon, c.created_at]);
+  for (const p of data.payment_plans ?? [])
+    await execute('INSERT INTO payment_plans (id,category_id,name,total,notes,created_at) VALUES ($1,$2,$3,$4,$5,$6)',
+      [p.id, p.category_id, p.name, p.total, p.notes, p.created_at]);
+  for (const i of data.payment_installments ?? [])
+    await execute('INSERT INTO payment_installments (id,plan_id,date,amount,notes,created_at) VALUES ($1,$2,$3,$4,$5,$6)',
+      [i.id, i.plan_id, i.date, i.amount, i.notes, i.created_at]);
 }

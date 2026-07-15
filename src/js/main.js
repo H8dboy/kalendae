@@ -14,6 +14,7 @@ import * as stats from './views/stats.js';
 import * as settingsView from './views/settings.js';
 import * as search from './views/search.js';
 import * as fitness from './views/fitness.js';
+import * as payments from './views/payments.js';
 import { initActivityModal, refreshLabels as refreshActLabels } from './views/activityModal.js';
 import { parseQuickAdd } from './logic/quickadd.js';
 import { occursOn, toIso } from './logic/recurrence.js';
@@ -22,7 +23,7 @@ const $ = id => document.getElementById(id);
 
 /* ================= navigazione ================= */
 // Stack di schermate: 'calendar' è la radice, ← risale di un livello.
-const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings', 'fitness', 'sport', 'plan'];
+const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings', 'fitness', 'sport', 'plan', 'payments', 'paycat', 'payplan'];
 let stack = ['calendar'];
 
 async function showScreen(name, title = null) {
@@ -50,13 +51,17 @@ async function showScreen(name, title = null) {
   else if (name === 'fitness') fitness.renderSports();
   else if (name === 'sport') fitness.renderSport();
   else if (name === 'plan') fitness.renderPlan();
+  else if (name === 'payments') payments.renderCategories();
+  else if (name === 'paycat') payments.renderCategory();
+  else if (name === 'payplan') payments.renderPlan();
 }
 
 function titleFor(name) {
   const map = {
     calendar: t('app_name'), tasks: t('tasks'), notes: t('notes'),
     search: t('search'), archive: t('archive'), stats: t('stats'), settings: t('settings'),
-    fitness: t('fitness'),   // 'sport' e 'plan' impostano il titolo nel loro render
+    fitness: t('fitness'), payments: t('payments'),
+    // 'sport'/'plan'/'paycat'/'payplan' impostano il titolo nel loro render
   };
   return map[name] ?? t('app_name');
 }
@@ -82,6 +87,7 @@ function initMenu() {
     if (!e.target.closest('#menuPop')) closeMenu();
   });
   $('mFitness').addEventListener('click', () => showScreen('fitness'));
+  $('mPayments').addEventListener('click', () => showScreen('payments'));
   $('mArchive').addEventListener('click', () => showScreen('archive'));
   $('mStats').addEventListener('click', () => showScreen('stats'));
   $('mSettings').addEventListener('click', () => showScreen('settings'));
@@ -192,6 +198,7 @@ async function boot() {
   tasks.initTasks();
   notes.initNotes({ showScreen });
   fitness.initFitness({ showScreen });
+  payments.initPayments({ showScreen });
   search.initSearch();
   settingsView.initSettings({
     onChange: s => {

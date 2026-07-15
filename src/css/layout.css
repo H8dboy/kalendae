@@ -328,6 +328,23 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 #subAdd { display: flex; gap: 8px; margin-top: 6px; }
 #subAdd input { flex: 1; }
 
+/* decorazioni festive nelle caselle */
+.cell .deco { font-size: 11px; margin-left: 3px; }
+.deco-row { color: var(--ink); }
+
+/* pagamenti: barra di avanzamento e righe riepilogo */
+.paybar {
+  height: 6px; background: var(--panel2); border-radius: 4px;
+  margin-top: 6px; overflow: hidden;
+}
+.paybar span { display: block; height: 100%; background: var(--neon); border-radius: 4px; }
+.paybar.big { height: 10px; margin-top: 10px; }
+.payline {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0; font-size: 14px;
+}
+.payline .accent-ink { color: var(--neon); font-weight: 600; }
+
 /* fitness: barra sessione allenamento + checkbox esercizi */
 .session-bar {
   display: flex; align-items: center; gap: 8px;

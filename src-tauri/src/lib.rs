@@ -133,6 +133,42 @@ fn migrations() -> Vec<Migration> {
             CREATE INDEX idx_workouts_date  ON workouts(date);
             CREATE INDEX idx_workouts_sport ON workouts(sport_id);
         "#,
+    },
+    Migration {
+        version: 3,
+        description: "pagamenti_a_rate",
+        kind: MigrationKind::Up,
+        sql: r#"
+            -- Sezioni dei pagamenti (Auto, Elettronica, ... + personalizzate).
+            CREATE TABLE payment_categories (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT NOT NULL,
+                icon       TEXT NOT NULL DEFAULT '💳',
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+
+            -- Piano di pagamento (es. "Rata macchina"): il totale da versare
+            -- è opzionale e impostato a mano; gli importi sono in CENTESIMI.
+            CREATE TABLE payment_plans (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                category_id INTEGER NOT NULL REFERENCES payment_categories(id) ON DELETE CASCADE,
+                name        TEXT NOT NULL,
+                total       INTEGER,             -- centesimi, NULL = senza totale
+                notes       TEXT NOT NULL DEFAULT '',
+                created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+
+            -- Singole rate versate: la somma è calcolata dall'app.
+            CREATE TABLE payment_installments (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                plan_id    INTEGER NOT NULL REFERENCES payment_plans(id) ON DELETE CASCADE,
+                date       TEXT NOT NULL,        -- 'YYYY-MM-DD'
+                amount     INTEGER NOT NULL,     -- centesimi
+                notes      TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+            CREATE INDEX idx_installments_plan ON payment_installments(plan_id);
+        "#,
     }]
 }
 

@@ -24,6 +24,7 @@
   <!-- menu ⋮ -->
   <nav id="menuPop" aria-label="Menu">
     <button id="mFitness">🏋 <span data-i18n="fitness"></span></button>
+    <button id="mPayments">🧮 <span data-i18n="payments"></span></button>
     <button id="mArchive">🗂 <span data-i18n="archive"></span></button>
     <button id="mStats">📊 <span data-i18n="stats"></span></button>
     <button id="mSettings">⚙ <span data-i18n="settings"></span></button>
@@ -117,6 +118,22 @@
     <section class="screen" id="screen-plan" hidden>
       <div class="scroll" id="planBody"></div>
       <button class="fab" id="fabExercise" aria-label="Nuovo esercizio">+</button>
+    </section>
+
+    <!-- ============ PAGAMENTI: sezioni → pagamenti → rate ============ -->
+    <section class="screen" id="screen-payments" hidden>
+      <div class="scroll" id="payCatList"></div>
+      <button class="fab" id="fabPayCat" aria-label="Nuova sezione">+</button>
+    </section>
+
+    <section class="screen" id="screen-paycat" hidden>
+      <div class="scroll" id="payCatBody"></div>
+      <button class="fab" id="fabPayPlan" aria-label="Nuovo pagamento">+</button>
+    </section>
+
+    <section class="screen" id="screen-payplan" hidden>
+      <div class="scroll" id="payPlanBody"></div>
+      <button class="fab" id="fabInstallment" aria-label="Nuova rata">+</button>
     </section>
   </main>
 </div>
@@ -223,6 +240,57 @@
     <div class="ym-grid" id="ymMonths"></div>
     <div class="acts">
       <button class="btn" id="ymCancel" data-i18n="close"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale sezione pagamenti (nome + icona) ============ -->
+<div class="overlay" id="pcatOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pcatTitle">
+    <h3 id="pcatTitle"></h3>
+    <label for="pcatName" data-i18n="pay_category_name_label"></label>
+    <input id="pcatName" type="text" maxlength="60" />
+    <label data-i18n="sport_icon_label"></label>
+    <div class="emoji-seg" id="pcatIcons"></div>
+    <div class="acts">
+      <button class="btn" id="pcatCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="pcatSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale pagamento (nome + totale) ============ -->
+<div class="overlay" id="pplanOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pplanTitle">
+    <h3 id="pplanTitle"></h3>
+    <label for="pplanName" data-i18n="pay_plan_name_label"></label>
+    <input id="pplanName" type="text" maxlength="120" />
+    <label for="pplanTotal" data-i18n="pay_total_label"></label>
+    <input id="pplanTotal" type="text" inputmode="decimal" maxlength="20" />
+    <label for="pplanNotes" data-i18n="notes_label"></label>
+    <textarea id="pplanNotes" maxlength="500"></textarea>
+    <div class="acts">
+      <button class="btn danger" id="pplanDelete" hidden data-i18n="delete"></button>
+      <button class="btn" id="pplanCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="pplanSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale rata (data + importo) ============ -->
+<div class="overlay" id="instOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="instTitle">
+    <h3 id="instTitle"></h3>
+    <label for="instDate" data-i18n="workout_date_label"></label>
+    <input id="instDate" type="date" />
+    <label for="instAmount" data-i18n="installment_amount_label"></label>
+    <input id="instAmount" type="text" inputmode="decimal" maxlength="20" />
+    <label for="instNotes" data-i18n="notes_label"></label>
+    <textarea id="instNotes" maxlength="500"></textarea>
+    <div class="acts">
+      <button class="btn danger" id="instDelete" hidden data-i18n="delete"></button>
+      <button class="btn" id="instCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="instSave" data-i18n="save"></button>
     </div>
   </div>
 </div>

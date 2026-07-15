@@ -12,6 +12,11 @@ build desktop come bonus e iOS predisposto.
   swipe per cambiare periodo, pulsante "Oggi", tap su un giorno → nuovo evento
   con data precompilata, tap su un evento → modifica. Tocca il mese/anno in
   alto per **saltare a qualsiasi mese e anno (1583–4000)**.
+- **Decorazioni festive**: il calendario si veste da solo — 🎃 a Halloween,
+  🎄 a Natale, 🎆 a San Silvestro, 🐣 a Pasqua, 🎭 a Carnevale, ❤️ a San
+  Valentino e al Capodanno cinese l'animale zodiacale di quell'anno
+  (🐎 nel 2026, 🐐 nel 2027… tabella 2024–2044). Appaiono sempre, a
+  prescindere dallo stato scelto per le festività.
 - **Festività nazionali**: nelle Impostazioni scegli lo stato (bandiera 🇮🇹 🇦🇱
   🇽🇰 🇲🇰 🇨🇭 🇩🇪 🇦🇹 🇫🇷 🇪🇸 🇬🇧 🇺🇸 🇬🇷) e le feste di quel paese compaiono fissate sul
   calendario, calcolate offline per qualsiasi anno: date fisse, Pasqua
@@ -49,6 +54,13 @@ build desktop come bonus e iOS predisposto.
   esercizi man mano che li fai e "Termina e salva" scrive tutto nel diario
   con la durata calcolata da solo. Le Statistiche mostrano anche ore
   lavorate e allenamenti per mese.
+- **Pagamenti 🧮** (menu ⋮ → Payments): tieni il conto delle rate. Sezioni
+  attivabili con un tocco (🚗 Auto, 📱 Dispositivi elettronici) o creabili
+  con + (icona a scelta). In ogni sezione crei un pagamento (es. "Rata
+  macchina") con la **cifra da versare impostata a mano** (opzionale) e poi
+  registri ogni rata (data + importo): l'app **somma da sola i soldi
+  versati** e mostra rimanenti e barra di avanzamento. Gli importi accettano
+  virgola o punto ("249,90" o "249.90").
 - **Funzioni estese**: notifiche locali all'ora impostata, ricerca su
   eventi/task/note, filtri (gruppo, priorità, aperte/fatte), archivio delle
   fatte ordinato per data di completamento, statistiche (completate per
@@ -56,7 +68,7 @@ build desktop come bonus e iOS predisposto.
   quick-add con parsing italiano ("domani 15:00 chiamare commercialista"),
   tema scuro/chiaro, impostazioni (primo giorno settimana, notifiche, lingua).
 
-Menu **⋮** in alto a destra → Fitness, Archivio fatte, Statistiche, Impostazioni.
+Menu **⋮** in alto a destra → Fitness, Pagamenti, Archivio fatte, Statistiche, Impostazioni.
 
 ## Struttura del progetto
 
