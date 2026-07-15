@@ -16,6 +16,9 @@ const SPORT_ICONS = ['🏋', '🏊', '🏃', '🚴', '⚽', '🏀', '🎾', '�
 let navigate = null;       // showScreen di main.js
 let currentSport = null;   // { id, name, icon }
 let currentPlan = null;    // { id, name }
+// Allenamento in corso: spunti gli esercizi mentre ti alleni, alla fine
+// la sessione si salva nel diario con durata calcolata dall'avvio.
+let session = null;        // { planId, start: Date, checked: Set<exerciseId> }
 
 export function initFitness({ showScreen }) {
   navigate = showScreen;
@@ -214,11 +217,14 @@ function subLine(text) {
 const firstLine = s => (s ?? '').trim().split('\n')[0];
 
 /* ---------- modale allenamento (diario) ---------- */
-async function openWorkoutModal(existing) {
+// prefill: precompila un NUOVO allenamento (fine sessione); afterSave
+// sostituisce il refresh di default dopo il salvataggio.
+async function openWorkoutModal(existing, { prefill = null, afterSave = null } = {}) {
   const ov = $('woOverlay');
   $('woTitle').textContent = existing ? t('edit_workout') : t('log_workout');
   $('woDate').value = existing?.date ?? toIso(new Date());
 
+  const preselPlan = existing?.plan_id ?? prefill?.plan_id ?? null;
   const sel = $('woPlan');
   sel.innerHTML = '';
   const none = document.createElement('option');
@@ -229,14 +235,14 @@ async function openWorkoutModal(existing) {
     const o = document.createElement('option');
     o.value = p.id;
     o.textContent = p.name;
-    if (existing?.plan_id === p.id) o.selected = true;
+    if (preselPlan === p.id) o.selected = true;
     sel.appendChild(o);
   }
 
-  const { h, m } = minutesToHm(existing?.minutes ?? 0);
+  const { h, m } = minutesToHm(existing?.minutes ?? prefill?.minutes ?? 0);
   $('woH').value = h || '';
   $('woM').value = m || '';
-  $('woNotes').value = existing?.notes ?? '';
+  $('woNotes').value = existing?.notes ?? prefill?.notes ?? '';
 
   const delBtn = $('woDelete');
   delBtn.hidden = !existing;
@@ -266,7 +272,8 @@ async function openWorkoutModal(existing) {
     else await db.addWorkout(w);
     done();
     toast(t('saved'));
-    renderSport();
+    if (afterSave) afterSave();
+    else renderSport();
   };
   ov.classList.add('open');
 }
@@ -288,20 +295,45 @@ export async function renderPlan() {
     return;
   }
 
+  // Sessione valida solo per la scheda aperta.
+  const active = session && session.planId === p.id ? session : null;
+  body.appendChild(sessionBar(p, exercises, active));
+
   exercises.forEach((e, i) => {
     const row = document.createElement('div');
     row.className = 'note';
+
+    if (active) {
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.className = 'excheck';
+      chk.checked = active.checked.has(e.id);
+      chk.addEventListener('click', ev => {
+        ev.stopPropagation();
+        if (chk.checked) active.checked.add(e.id);
+        else active.checked.delete(e.id);
+      });
+      row.appendChild(chk);
+    } else {
+      const numCol = document.createElement('span');
+      numCol.className = 'fcount mono';
+      numCol.style.cssText = 'min-width:24px;text-align:right';
+      numCol.textContent = `${i + 1}.`;
+      row.appendChild(numCol);
+    }
+
     const meta = [
       e.sets && e.reps ? `${e.sets} × ${e.reps}` : (e.sets || e.reps),
       e.load,
       e.rest ? `⏲ ${e.rest}` : '',
     ].filter(Boolean).join('  ·  ');
-    row.innerHTML = `<span class="fcount mono" style="min-width:24px;text-align:right">${i + 1}.</span>
-      <div class="nbody">
-        <div class="ntitle">${esc(e.name)}</div>
-        ${meta ? `<div class="nmeta">${esc(meta)}</div>` : ''}
-        ${e.notes ? `<div class="nmeta">${esc(firstLine(e.notes))}</div>` : ''}
-      </div>`;
+    const nb = document.createElement('div');
+    nb.className = 'nbody';
+    nb.innerHTML = `<div class="ntitle">${esc(e.name)}</div>
+      ${meta ? `<div class="nmeta">${esc(meta)}</div>` : ''}
+      ${e.notes ? `<div class="nmeta">${esc(firstLine(e.notes))}</div>` : ''}`;
+    row.appendChild(nb);
+
     row.appendChild(mini('✕', async () => {
       if (!(await confirmDialog(t('confirm_delete_exercise')))) return;
       await db.deleteExercise(e.id);
@@ -309,11 +341,65 @@ export async function renderPlan() {
       renderPlan();
     }));
     row.addEventListener('click', ev => {
-      if (ev.target.closest('.iconbtn-mini')) return;
+      if (ev.target.closest('.iconbtn-mini') || ev.target.closest('.excheck')) return;
       openExerciseModal(e);
     });
     body.appendChild(row);
   });
+}
+
+/** Barra sessione: avvia l'allenamento, oppure (se in corso) termina/interrompi. */
+function sessionBar(plan, exercises, active) {
+  const bar = document.createElement('div');
+  bar.className = 'session-bar';
+
+  if (!active) {
+    const start = document.createElement('button');
+    start.className = 'btn accent';
+    start.style.flex = '1';
+    start.textContent = t('start_workout');
+    start.addEventListener('click', () => {
+      session = { planId: plan.id, start: new Date(), checked: new Set() };
+      renderPlan();
+    });
+    bar.appendChild(start);
+    return bar;
+  }
+
+  const elapsedMin = Math.max(1, Math.round((Date.now() - active.start.getTime()) / 60000));
+  const lbl = document.createElement('span');
+  lbl.className = 'mono';
+  lbl.style.cssText = 'flex:1;font-size:12px;color:var(--neon)';
+  lbl.textContent = `● ${t('session_running')} ${fmtMinutes(elapsedMin)}`;
+  bar.appendChild(lbl);
+
+  const abort = document.createElement('button');
+  abort.className = 'btn small danger';
+  abort.textContent = t('abort_workout');
+  abort.addEventListener('click', async () => {
+    if (!(await confirmDialog(t('confirm_abort_workout')))) return;
+    session = null;
+    renderPlan();
+  });
+  bar.appendChild(abort);
+
+  const finish = document.createElement('button');
+  finish.className = 'btn small accent';
+  finish.textContent = t('finish_workout');
+  finish.addEventListener('click', () => {
+    const minutes = Math.max(1, Math.round((Date.now() - active.start.getTime()) / 60000));
+    const notes = exercises
+      .filter(e => active.checked.has(e.id))
+      .map(e => `✓ ${e.name}`)
+      .join('\n');
+    openWorkoutModal(null, {
+      prefill: { plan_id: plan.id, minutes, notes },
+      afterSave: () => { session = null; navigate('sport'); },
+    });
+  });
+  bar.appendChild(finish);
+
+  return bar;
 }
 
 /* ---------- modale esercizio ---------- */

@@ -22,10 +22,8 @@ const nowHm = () => {
   return `${p(n.getHours())}:${p(n.getMinutes())}`;
 };
 
-export function initActivityModal({ onPickDate }) {
-  onPickDateCb = onPickDate;
-
-  // etichette statiche del modale
+/** Etichette del modale dipendenti dalla lingua: al boot e al cambio lingua. */
+export function refreshLabels() {
   const prios = [t('prio_low'), t('prio_mid'), t('prio_high')];
   $('fPrio').querySelectorAll('button').forEach((b, i) => (b.textContent = prios[i]));
   const recOpts = $('fRec').options;
@@ -41,6 +39,11 @@ export function initActivityModal({ onPickDate }) {
   $('subAddBtn').textContent = t('add');
   $('subInput').placeholder = t('subtask_placeholder');
   $('fTitle').placeholder = t('title_placeholder');
+}
+
+export function initActivityModal({ onPickDate }) {
+  onPickDateCb = onPickDate;
+  refreshLabels();
 
   $('fPrio').addEventListener('click', e => {
     const b = e.target.closest('button');

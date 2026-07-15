@@ -76,3 +76,46 @@ test('orario non valido ignorato', () => {
   const r = parseQuickAdd('appunti 99:99 vari', NOW);
   assert.equal(r.time, null);
 });
+
+/* ---------- inglese (il parser riconosce sempre entrambe le lingue) ---------- */
+
+test('EN: tomorrow + orario', () => {
+  const r = parseQuickAdd('tomorrow 15:00 call the accountant', NOW);
+  assert.equal(r.date, '2026-07-14');
+  assert.equal(r.time, '15:00');
+  assert.equal(r.title, 'call the accountant');
+});
+
+test('EN: today', () => {
+  const r = parseQuickAdd('today buy milk', NOW);
+  assert.equal(r.date, '2026-07-13');
+  assert.equal(r.title, 'buy milk');
+});
+
+test('EN: day after tomorrow', () => {
+  const r = parseQuickAdd('day after tomorrow dentist', NOW);
+  assert.equal(r.date, '2026-07-15');
+  assert.equal(r.title, 'dentist');
+});
+
+test('EN: giorno della settimana (prossima occorrenza, mai oggi)', () => {
+  // NOW è lunedì 13/07: "monday" → lunedì successivo 20/07
+  const r = parseQuickAdd('monday gym session', NOW);
+  assert.equal(r.date, '2026-07-20');
+  assert.equal(r.title, 'gym session');
+  const r2 = parseQuickAdd('friday call mum', NOW);
+  assert.equal(r2.date, '2026-07-17');
+});
+
+test('EN: "at 15" → 15:00', () => {
+  const r = parseQuickAdd('tomorrow at 15 courier', NOW);
+  assert.equal(r.time, '15:00');
+  assert.equal(r.title, 'courier');
+});
+
+test('EN: "today" non viene mangiato dal pattern "day"', () => {
+  const r = parseQuickAdd('today at 9 standup', NOW);
+  assert.equal(r.date, '2026-07-13');
+  assert.equal(r.time, '09:00');
+  assert.equal(r.title, 'standup');
+});

@@ -28,17 +28,27 @@ build desktop come bonus e iOS predisposto.
 - **Attività complete**: titolo, descrizione, gruppo, data/ora opzionali,
   priorità (bassa/media/alta con colore), ricorrenze (giornaliera /
   settimanale / mensile / annuale), sottoattività (checklist), promemoria.
+- **Lingua**: interfaccia in **inglese** (default) o italiano, cambiabile
+  al volo dalle Impostazioni. Il quick-add capisce sempre entrambe le lingue
+  ("domani alle 15" e "tomorrow at 15").
 - **Ore di lavoro**: in vista mese ogni casella ha un ⏱ nell'angolo — lo
   tocchi e registri le ore lavorate di quel giorno (ore e minuti). Il badge
   mostra le ore del giorno (es. `7:30`) e sotto il calendario appare il
-  **totale del mese** (es. `142h 30m`). In vista giorno c'è la riga
-  "⏱ Lavoro" sempre pronta; "Azzera" cancella le ore del giorno.
+  **totale del mese** (es. `142h 30m`) con il pulsante **💾 CSV** che esporta
+  il mese giorno per giorno (per farti pagare o per controllo). In vista
+  giorno c'è la riga "⏱ Lavoro" sempre pronta; "Azzera" cancella le ore.
+  Nelle Impostazioni puoi attivare il **promemoria serale** ("hai registrato
+  le ore di oggi?") all'ora che scegli — suona solo se il giorno è vuoto.
 - **Fitness** (menu ⋮ → Fitness): crei i tuoi sport (nome + icona 🏋 🏊 🏃 …).
   Ogni sport ha le sue **schede di allenamento** — liste di esercizi con
   serie, ripetizioni/distanza, carico/intensità, recupero e note, quindi
   vanno bene sia per la palestra ("Panca 4×12 60kg rec 90s") che per il
   nuoto ("8×50m stile, ritmo gara") o altro — e un **diario allenamenti**
   dove registri ogni sessione con data, scheda usata, durata e come è andata.
+  Dentro una scheda, **▶ Inizia allenamento** avvia la sessione: spunti gli
+  esercizi man mano che li fai e "Termina e salva" scrive tutto nel diario
+  con la durata calcolata da solo. Le Statistiche mostrano anche ore
+  lavorate e allenamenti per mese.
 - **Funzioni estese**: notifiche locali all'ora impostata, ricerca su
   eventi/task/note, filtri (gruppo, priorità, aperte/fatte), archivio delle
   fatte ordinato per data di completamento, statistiche (completate per

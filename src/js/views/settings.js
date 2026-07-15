@@ -11,7 +11,10 @@ import { COUNTRIES } from '../logic/holidays.js';
 const $ = id => document.getElementById(id);
 
 // Valori di default delle impostazioni (chiave → default).
-export const DEFAULTS = { theme: 'dark', first_day: '1', notifications: '1', lang: 'it', country: '' };
+export const DEFAULTS = {
+  theme: 'dark', first_day: '1', notifications: '1', lang: 'en', country: '',
+  work_reminder: '0', work_reminder_time: '20:00',
+};
 
 let settings = { ...DEFAULTS };
 let onSettingsChange = null;
@@ -37,6 +40,8 @@ async function set(key, value) {
   await db.setSetting(key, value);
   applyTheme();
   onSettingsChange?.(settings);
+  // Cambiando lingua le etichette di questa schermata vanno rigenerate.
+  if (key === 'lang') render();
 }
 
 export function render() {
@@ -66,18 +71,33 @@ export function render() {
     ['', t('country_none')],
     ...COUNTRIES.map(c => [c.code, `${c.flag} ${c.name}`]),
   ]);
-  // Lingue: en/sq si attivano aggiungendo i file in js/i18n/ (vedi i18n/index.js).
-  rowSelect(t('set_language'), 'lang', [['it', 'Italiano']]);
+  rowSelect(t('set_language'), 'lang', [['en', 'English'], ['it', 'Italiano']]);
 
-  const notif = document.createElement('div');
-  notif.className = 'setrow';
-  notif.innerHTML = `<span class="slabel">${t('set_notifications')}</span>`;
-  const chk = document.createElement('input');
-  chk.type = 'checkbox';
-  chk.checked = settings.notifications === '1';
-  chk.addEventListener('change', () => set('notifications', chk.checked ? '1' : '0'));
-  notif.appendChild(chk);
-  body.appendChild(notif);
+  const rowCheck = (label, key) => {
+    const row = document.createElement('div');
+    row.className = 'setrow';
+    row.innerHTML = `<span class="slabel">${label}</span>`;
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = settings[key] === '1';
+    chk.addEventListener('change', () => set(key, chk.checked ? '1' : '0'));
+    row.appendChild(chk);
+    body.appendChild(row);
+    return row;
+  };
+
+  rowCheck(t('set_notifications'), 'notifications');
+
+  // Promemoria serale "hai registrato le ore di oggi?": checkbox + orario.
+  const wrRow = rowCheck(t('set_work_reminder'), 'work_reminder');
+  const wrTime = document.createElement('input');
+  wrTime.type = 'time';
+  wrTime.value = settings.work_reminder_time;
+  wrTime.style.cssText = 'background:var(--bg);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:var(--radius);font-size:14px;min-height:40px';
+  wrTime.addEventListener('change', () => {
+    if (wrTime.value) set('work_reminder_time', wrTime.value);
+  });
+  wrRow.insertBefore(wrTime, wrRow.lastChild);
 
   const btn = (label, cls, onTap) => {
     const row = document.createElement('div');

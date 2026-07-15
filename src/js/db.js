@@ -309,6 +309,14 @@ export const statsByGroup = () =>
           FROM activities a JOIN groups g ON g.id=a.group_id
           WHERE a.done=1 GROUP BY g.id ORDER BY n DESC`);
 
+export const statsWorkByMonth = () =>
+  select(`SELECT substr(date,1,7) AS bucket, SUM(minutes) AS n
+          FROM work_hours GROUP BY bucket ORDER BY bucket DESC LIMIT 6`);
+
+export const statsWorkoutsByMonth = () =>
+  select(`SELECT substr(date,1,7) AS bucket, COUNT(*) AS n
+          FROM workouts GROUP BY bucket ORDER BY bucket DESC LIMIT 6`);
+
 /* ---------------- backup (export/import) ---------------- */
 export async function dumpAll() {
   return {

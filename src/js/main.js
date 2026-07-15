@@ -14,7 +14,7 @@ import * as stats from './views/stats.js';
 import * as settingsView from './views/settings.js';
 import * as search from './views/search.js';
 import * as fitness from './views/fitness.js';
-import { initActivityModal } from './views/activityModal.js';
+import { initActivityModal, refreshLabels as refreshActLabels } from './views/activityModal.js';
 import { parseQuickAdd } from './logic/quickadd.js';
 import { occursOn, toIso } from './logic/recurrence.js';
 
@@ -87,10 +87,27 @@ function initMenu() {
   $('mSettings').addEventListener('click', () => showScreen('settings'));
 }
 
+/* ================= i18n runtime ================= */
+// Etichette statiche: applicate al boot e riapplicate quando cambia la lingua.
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  $('confirmNo').textContent = t('cancel');
+  $('confirmOk').textContent = t('delete');
+  $('promptNo').textContent = t('cancel');
+  $('promptOk').textContent = t('save');
+  $('quickInput').placeholder = t('quickadd_placeholder');
+  $('noteTitle').placeholder = t('note_title_placeholder');
+  $('noteBody').placeholder = t('note_body_placeholder');
+  $('searchInput').placeholder = t('search_placeholder');
+  calendar.refreshLabels();
+  refreshActLabels();
+}
+
 /* ================= quick add ================= */
 function initQuickAdd() {
   const input = $('quickInput');
-  input.placeholder = t('quickadd_placeholder');
   input.addEventListener('keydown', async e => {
     if (e.key !== 'Enter') return;
     const parsed = parseQuickAdd(input.value);
@@ -135,6 +152,17 @@ async function checkReminders() {
     notified.add(key);
     n.sendNotification({ title: t('notif_title'), body: `${a.time} — ${a.title}` });
   }
+
+  // Promemoria serale ore di lavoro: solo se attivo, all'ora impostata,
+  // e solo se oggi non è stata ancora registrata nessuna ora.
+  if (settingsView.getSetting('work_reminder') === '1'
+      && hm === settingsView.getSetting('work_reminder_time')
+      && !notified.has(`work|${today}`)) {
+    notified.add(`work|${today}`);
+    if ((await db.getWorkMinutes(today)) === 0) {
+      n.sendNotification({ title: t('notif_title'), body: t('work_reminder_msg') });
+    }
+  }
 }
 
 /* ================= bootstrap ================= */
@@ -151,15 +179,7 @@ async function boot() {
   setLang(settings.lang);
   calendar.setFirstDay(+settings.first_day);
   calendar.setCountry(settings.country);
-
-  // etichette statiche marcate con data-i18n nell'HTML
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = t(el.dataset.i18n);
-  });
-  $('confirmNo').textContent = t('cancel');
-  $('confirmOk').textContent = t('delete');
-  $('promptNo').textContent = t('cancel');
-  $('promptOk').textContent = t('save');
+  applyI18n();
 
   initActivityModal({
     onPickDate: async id => {
@@ -178,6 +198,8 @@ async function boot() {
       setLang(s.lang);
       calendar.setFirstDay(+s.first_day);
       calendar.setCountry(s.country);
+      applyI18n();
+      $('screenTitle').textContent = titleFor(stack[stack.length - 1]);
     },
   });
   initMenu();

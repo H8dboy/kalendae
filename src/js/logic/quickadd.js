@@ -1,9 +1,11 @@
 // Parser "aggiungi veloce" — modulo PURO, testato in tests/.
-// Riconosce nel testo italiano: oggi, domani, dopodomani, i giorni della
-// settimana (prossima occorrenza), date "15/08" o "15/08/2026", orari "15:00",
-// "15.30" o "alle 15". Il resto del testo diventa il titolo.
-// Esempio: "domani 15:00 chiamare commercialista"
-//   → { title: 'chiamare commercialista', date: '2026-07-14', time: '15:00' }
+// Riconosce italiano E inglese (sempre entrambi, a prescindere dalla lingua
+// dell'app): oggi/today, domani/tomorrow, dopodomani/day after tomorrow,
+// i giorni della settimana (prossima occorrenza), date "15/08" o
+// "15/08/2026", orari "15:00", "15.30" o "alle 15"/"at 15".
+// Il resto del testo diventa il titolo.
+// Esempio: "tomorrow 15:00 call the accountant"
+//   → { title: 'call the accountant', date: '2026-07-16', time: '15:00' }
 
 import { toIso } from './recurrence.js';
 
@@ -11,6 +13,8 @@ const DOWS = {
   'lunedì': 1, 'lunedi': 1, 'martedì': 2, 'martedi': 2, 'mercoledì': 3,
   'mercoledi': 3, 'giovedì': 4, 'giovedi': 4, 'venerdì': 5, 'venerdi': 5,
   'sabato': 6, 'domenica': 0,
+  'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5,
+  'saturday': 6, 'sunday': 0,
 };
 
 /** @param {string} text  @param {Date} [now] iniettabile nei test */
@@ -27,10 +31,10 @@ export function parseQuickAdd(text, now = new Date()) {
     }
   };
 
-  // --- data relativa ---
-  eat(/\sdopodomani\s/i, () => { date = addDays(now, 2); });
-  if (!date) eat(/\sdomani\s/i, () => { date = addDays(now, 1); });
-  if (!date) eat(/\soggi\s/i, () => { date = addDays(now, 0); });
+  // --- data relativa (prima le forme lunghe, che contengono le corte) ---
+  eat(/\s(?:dopodomani|day\s+after\s+tomorrow)\s/i, () => { date = addDays(now, 2); });
+  if (!date) eat(/\s(?:domani|tomorrow)\s/i, () => { date = addDays(now, 1); });
+  if (!date) eat(/\s(?:oggi|today)\s/i, () => { date = addDays(now, 0); });
 
   // --- giorno della settimana: prossima occorrenza (mai oggi) ---
   if (!date) {
@@ -62,9 +66,9 @@ export function parseQuickAdd(text, now = new Date()) {
     const h = +m[1], mi = +m[2];
     if (h <= 23 && mi <= 59) time = pad(h) + ':' + pad(mi);
   });
-  // --- "alle 15" ---
+  // --- "alle 15" / "at 15" ---
   if (!time) {
-    eat(/\salle?\s+(\d{1,2})\s/i, m => {
+    eat(/\s(?:alle?|at)\s+(\d{1,2})\s/i, m => {
       const h = +m[1];
       if (h <= 23) time = pad(h) + ':00';
     });

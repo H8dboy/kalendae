@@ -36,12 +36,18 @@ function holidayNames(dateIso) {
 
 const countryFlag = () => countryByCode(country)?.flag ?? '⭐';
 
-export function initCalendar() {
+/** (Ri)applica le etichette dipendenti dalla lingua: chiamata al boot e al cambio lingua. */
+export function refreshLabels() {
   $('todayBtn').textContent = t('today');
   const tabs = $('calTabs').querySelectorAll('.tab');
   tabs[0].textContent = t('month');
   tabs[1].textContent = t('week');
   tabs[2].textContent = t('day');
+}
+
+export function initCalendar() {
+  refreshLabels();
+  const tabs = $('calTabs').querySelectorAll('.tab');
 
   $('calTabs').addEventListener('click', e => {
     const b = e.target.closest('.tab');
@@ -316,10 +322,38 @@ async function renderMonth() {
   if (monthTotal > 0) {
     const totRow = document.createElement('div');
     totRow.id = 'whTotal';
-    totRow.textContent = `⏱ ${t('work_month_total')}: ${fmtMinutes(monthTotal)}`;
+    const label = document.createElement('span');
+    label.textContent = `⏱ ${t('work_month_total')}: ${fmtMinutes(monthTotal)}`;
+    label.style.flex = '1';
+    const exp = document.createElement('button');
+    exp.className = 'btn small accent';
+    exp.textContent = `💾 ${t('work_export_csv')}`;
+    exp.addEventListener('click', () => exportWorkCsv(ym));
+    totRow.append(label, exp);
     children.push(totRow);
   }
   $('calBody').replaceChildren(...children);
+}
+
+/** Esporta le ore di lavoro del mese in CSV (giorno per giorno + totale). */
+async function exportWorkCsv(ym) {
+  const dialog = window.__TAURI__?.dialog, fs = window.__TAURI__?.fs;
+  if (!dialog || !fs) return;
+  const path = await dialog.save({
+    defaultPath: `work-hours-${ym}.csv`,
+    filters: [{ name: 'CSV', extensions: ['csv'] }],
+  });
+  if (!path) return;
+  const rows = await db.listWorkHours(`${ym}-01`, `${ym}-31`);
+  let tot = 0;
+  const lines = ['date,minutes,hours'];
+  for (const r of rows) {
+    tot += r.minutes;
+    lines.push(`${r.date},${r.minutes},${fmtMinutesShort(r.minutes)}`);
+  }
+  lines.push(`${t('work_csv_total')},${tot},${fmtMinutesShort(tot)}`);
+  await fs.writeTextFile(path, lines.join('\r\n') + '\r\n');
+  toast(`${t('export_done')} ${path}`);
 }
 
 function gotoDay(d) {
