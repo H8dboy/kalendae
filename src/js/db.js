@@ -182,6 +182,41 @@ export async function setWorkMinutes(date, minutes) {
   }
 }
 
+/* ---------------- turni di lavoro ---------------- */
+// Modelli di turno (Mattina, Notte, Riposo, ...).
+export const listShiftTypes = () =>
+  select('SELECT * FROM shift_types ORDER BY position, id');
+
+export async function createShiftType(t) {
+  const r = await execute(
+    'INSERT INTO shift_types (label, name, start, end, color, position) VALUES ($1,$2,$3,$4,$5,$6)',
+    [t.label, t.name ?? '', t.start ?? '', t.end ?? '', t.color ?? '#3dff70', t.position ?? 0]);
+  return r.lastInsertId;
+}
+
+export const updateShiftType = (id, t) =>
+  execute('UPDATE shift_types SET label=$1, name=$2, start=$3, end=$4, color=$5 WHERE id=$6',
+    [t.label, t.name ?? '', t.start ?? '', t.end ?? '', t.color ?? '#3dff70', id]);
+
+// ON DELETE CASCADE rimuove anche le assegnazioni in day_shifts.
+export const deleteShiftType = id => execute('DELETE FROM shift_types WHERE id=$1', [id]);
+
+// Assegnazioni turno→giorno.
+export const listDayShifts = (from, to) =>
+  select('SELECT date, shift_id FROM day_shifts WHERE date >= $1 AND date <= $2', [from, to]);
+
+export const getDayShift = async date =>
+  (await select('SELECT shift_id FROM day_shifts WHERE date=$1', [date]))[0]?.shift_id ?? null;
+
+// shiftId null/0 = nessun turno: la riga si elimina.
+export async function setDayShift(date, shiftId) {
+  if (shiftId) {
+    await execute('INSERT OR REPLACE INTO day_shifts (date, shift_id) VALUES ($1,$2)', [date, shiftId]);
+  } else {
+    await execute('DELETE FROM day_shifts WHERE date=$1', [date]);
+  }
+}
+
 /* ---------------- fitness: sport ---------------- */
 export const listSports = () =>
   select(`SELECT s.*,
@@ -392,6 +427,8 @@ export async function dumpAll() {
     notes: await select('SELECT * FROM notes'),
     settings: await select('SELECT * FROM settings'),
     work_hours: await select('SELECT * FROM work_hours'),
+    shift_types: await select('SELECT * FROM shift_types'),
+    day_shifts: await select('SELECT * FROM day_shifts'),
     sports: await select('SELECT * FROM sports'),
     workout_plans: await select('SELECT * FROM workout_plans'),
     plan_exercises: await select('SELECT * FROM plan_exercises'),
@@ -412,6 +449,8 @@ export async function restoreAll(data) {
   await execute('DELETE FROM note_folders');
   await execute('DELETE FROM settings');
   await execute('DELETE FROM work_hours');
+  await execute('DELETE FROM day_shifts');
+  await execute('DELETE FROM shift_types');
   await execute('DELETE FROM plan_exercises');
   await execute('DELETE FROM workouts');
   await execute('DELETE FROM workout_plans');
@@ -441,6 +480,11 @@ export async function restoreAll(data) {
   // Tabelle aggiunte dopo: i backup vecchi non le hanno (?? []).
   for (const w of data.work_hours ?? [])
     await execute('INSERT INTO work_hours (date,minutes) VALUES ($1,$2)', [w.date, w.minutes]);
+  for (const st of data.shift_types ?? [])
+    await execute('INSERT INTO shift_types (id,label,name,start,end,color,position,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+      [st.id, st.label, st.name, st.start, st.end, st.color, st.position, st.created_at]);
+  for (const ds of data.day_shifts ?? [])
+    await execute('INSERT INTO day_shifts (date,shift_id) VALUES ($1,$2)', [ds.date, ds.shift_id]);
   for (const s of data.sports ?? [])
     await execute('INSERT INTO sports (id,name,icon,created_at) VALUES ($1,$2,$3,$4)',
       [s.id, s.name, s.icon, s.created_at]);

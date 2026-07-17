@@ -15,6 +15,7 @@ import * as settingsView from './views/settings.js';
 import * as search from './views/search.js';
 import * as fitness from './views/fitness.js';
 import * as payments from './views/payments.js';
+import * as shifts from './views/shifts.js';
 import { initActivityModal, refreshLabels as refreshActLabels } from './views/activityModal.js';
 import { parseQuickAdd } from './logic/quickadd.js';
 import { occursOn, toIso } from './logic/recurrence.js';
@@ -23,7 +24,7 @@ const $ = id => document.getElementById(id);
 
 /* ================= navigazione ================= */
 // Stack di schermate: 'calendar' è la radice, ← risale di un livello.
-const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings', 'fitness', 'sport', 'plan', 'payments', 'paycat', 'payplan'];
+const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings', 'fitness', 'sport', 'plan', 'payments', 'paycat', 'payplan', 'shifts'];
 let stack = ['calendar'];
 
 async function showScreen(name, title = null) {
@@ -57,13 +58,14 @@ async function showScreen(name, title = null) {
   else if (name === 'payments') payments.renderCategories();
   else if (name === 'paycat') payments.renderCategory();
   else if (name === 'payplan') payments.renderPlan();
+  else if (name === 'shifts') shifts.renderShifts();
 }
 
 function titleFor(name) {
   const map = {
     calendar: t('app_name'), tasks: t('tasks'), notes: t('notes'),
     search: t('search'), archive: t('archive'), stats: t('stats'), settings: t('settings'),
-    fitness: t('fitness'), payments: t('payments'),
+    fitness: t('fitness'), payments: t('payments'), shifts: t('shifts'),
     // 'sport'/'plan'/'paycat'/'payplan' impostano il titolo nel loro render
   };
   return map[name] ?? t('app_name');
@@ -91,9 +93,15 @@ function initMenu() {
   });
   $('mFitness').addEventListener('click', () => showScreen('fitness'));
   $('mPayments').addEventListener('click', () => showScreen('payments'));
+  $('mShifts').addEventListener('click', () => showScreen('shifts'));
   $('mArchive').addEventListener('click', () => showScreen('archive'));
   $('mStats').addEventListener('click', () => showScreen('stats'));
   $('mSettings').addEventListener('click', () => showScreen('settings'));
+}
+
+// La voce ⋮ Turni compare solo se i Turni sono attivi nelle impostazioni.
+function applyFeatureToggles() {
+  $('mShifts').hidden = settingsView.getSetting('show_shifts') !== '1';
 }
 
 /* ================= i18n runtime ================= */
@@ -202,6 +210,7 @@ async function boot() {
   notes.initNotes({ showScreen });
   fitness.initFitness({ showScreen });
   payments.initPayments({ showScreen });
+  shifts.initShifts();
   search.initSearch();
   settingsView.initSettings({
     onChange: s => {
@@ -209,12 +218,15 @@ async function boot() {
       calendar.setFirstDay(+s.first_day);
       calendar.setCountry(s.country);
       applyI18n();
+      applyFeatureToggles();
+      calendar.render();
       const cur = titleFor(stack[stack.length - 1]);
       $('screenTitle').textContent = cur;
       $('screenTitle').classList.toggle('home', cur === t('app_name'));
     },
   });
   initMenu();
+  applyFeatureToggles();
   initQuickAdd();
 
   // header

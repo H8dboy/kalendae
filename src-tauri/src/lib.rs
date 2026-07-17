@@ -169,6 +169,31 @@ fn migrations() -> Vec<Migration> {
             );
             CREATE INDEX idx_installments_plan ON payment_installments(plan_id);
         "#,
+    },
+    Migration {
+        version: 4,
+        description: "turni_di_lavoro",
+        kind: MigrationKind::Up,
+        sql: r#"
+            -- Modelli di turno (Mattina, Pomeriggio, Notte, Riposo, ...):
+            -- sigla + nome + orario (vuoto = 0h) + colore.
+            CREATE TABLE shift_types (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                label      TEXT NOT NULL,                 -- sigla breve, es. 'M'
+                name       TEXT NOT NULL DEFAULT '',      -- nome esteso, es. 'Mattina'
+                start      TEXT NOT NULL DEFAULT '',      -- 'HH:MM' o '' (nessun orario → 0h)
+                end        TEXT NOT NULL DEFAULT '',
+                color      TEXT NOT NULL DEFAULT '#3dff70',
+                position   INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+
+            -- Turno assegnato a un giorno (uno per giorno).
+            CREATE TABLE day_shifts (
+                date     TEXT PRIMARY KEY,                -- 'YYYY-MM-DD'
+                shift_id INTEGER NOT NULL REFERENCES shift_types(id) ON DELETE CASCADE
+            );
+        "#,
     }]
 }
 

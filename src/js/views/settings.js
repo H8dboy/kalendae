@@ -14,6 +14,7 @@ const $ = id => document.getElementById(id);
 export const DEFAULTS = {
   theme: 'dark', first_day: '1', notifications: '1', lang: 'en', country: '',
   work_reminder: '0', work_reminder_time: '20:00',
+  show_work_hours: '1', show_shifts: '0',
 };
 
 let settings = { ...DEFAULTS };
@@ -88,6 +89,9 @@ export function render() {
 
   rowCheck(t('set_notifications'), 'notifications');
 
+  // --- Lavoro: Ore di lavoro e Turni sono indipendenti (uno, l'altro o entrambi). ---
+  rowCheck(t('set_work_hours'), 'show_work_hours');
+
   // Promemoria serale "hai registrato le ore di oggi?": checkbox + orario.
   const wrRow = rowCheck(t('set_work_reminder'), 'work_reminder');
   const wrTime = document.createElement('input');
@@ -98,6 +102,8 @@ export function render() {
     if (wrTime.value) set('work_reminder_time', wrTime.value);
   });
   wrRow.insertBefore(wrTime, wrRow.lastChild);
+
+  rowCheck(t('set_shifts'), 'show_shifts');
 
   const btn = (label, cls, onTap) => {
     const row = document.createElement('div');

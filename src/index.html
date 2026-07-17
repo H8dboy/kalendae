@@ -51,6 +51,7 @@
   <nav id="menuPop" aria-label="Menu">
     <button id="mFitness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7.5 8.5 V15.5 M4.5 10 V14 M16.5 8.5 V15.5 M19.5 10 V14 M7.5 12 H16.5"></path></svg> <span data-i18n="fitness"></span></button>
     <button id="mPayments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5.5" y="3.5" width="13" height="17" rx="2.5"></rect><path d="M9 7.5 H15"></path><circle cx="9" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="15" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="9" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="12" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="15" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle></svg> <span data-i18n="payments"></span></button>
+    <button id="mShifts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"></circle><path d="M12 8 V12 L15 14"></path></svg> <span data-i18n="shifts"></span></button>
     <button id="mArchive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="4.5" rx="1"></rect><path d="M6 9 V19.5 H18 V9"></path><path d="M10 12.5 H14"></path></svg> <span data-i18n="archive"></span></button>
     <button id="mStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.5 19.5 V12 M12 19.5 V6 M18.5 19.5 V9.5"></path></svg> <span data-i18n="stats"></span></button>
     <button id="mSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.4"></circle><path d="M12 4.2 V6.2 M12 17.8 V19.8 M4.2 12 H6.2 M17.8 12 H19.8 M6.5 6.5 L7.9 7.9 M16.1 16.1 L17.5 17.5 M17.5 6.5 L16.1 7.9 M7.9 16.1 L6.5 17.5"></path></svg> <span data-i18n="settings"></span></button>
@@ -160,6 +161,12 @@
     <section class="screen" id="screen-payplan" hidden>
       <div class="scroll" id="payPlanBody"></div>
       <button class="fab" id="fabInstallment" aria-label="Nuova rata">+</button>
+    </section>
+
+    <!-- ============ TURNI ============ -->
+    <section class="screen" id="screen-shifts" hidden>
+      <div class="scroll" id="shiftBody"></div>
+      <button class="fab" id="fabShift" aria-label="Nuovo turno">+</button>
     </section>
   </main>
 </div>
@@ -420,6 +427,52 @@
       <button class="btn danger" id="woDelete" hidden data-i18n="delete"></button>
       <button class="btn" id="woCancel" data-i18n="cancel"></button>
       <button class="btn accent" id="woSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale tipo turno (sigla + nome + orario + colore) ============ -->
+<div class="overlay" id="shiftOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shiftTitle">
+    <h3 id="shiftTitle"></h3>
+    <div class="row2">
+      <div>
+        <label for="shLabel" data-i18n="shift_label"></label>
+        <input id="shLabel" type="text" maxlength="4" />
+      </div>
+      <div>
+        <label for="shColor" data-i18n="shift_color"></label>
+        <input id="shColor" type="color" value="#3dff70" />
+      </div>
+    </div>
+    <label for="shName" data-i18n="shift_name"></label>
+    <input id="shName" type="text" maxlength="40" />
+    <div class="row2">
+      <div>
+        <label for="shStart" data-i18n="shift_start"></label>
+        <input id="shStart" type="time" />
+      </div>
+      <div>
+        <label for="shEnd" data-i18n="shift_end"></label>
+        <input id="shEnd" type="time" />
+      </div>
+    </div>
+    <div class="hint" data-i18n="shift_rest_hint"></div>
+    <div class="acts">
+      <button class="btn danger" id="shDelete" hidden data-i18n="delete"></button>
+      <button class="btn" id="shCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="shSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale scelta turno del giorno ============ -->
+<div class="overlay" id="shiftPickOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shiftPickTitle">
+    <h3 id="shiftPickTitle" data-i18n="pick_shift"></h3>
+    <div id="shiftPickList"></div>
+    <div class="acts">
+      <button class="btn" id="shiftPickCancel" data-i18n="cancel"></button>
     </div>
   </div>
 </div>

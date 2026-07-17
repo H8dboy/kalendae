@@ -7,8 +7,10 @@ import { esc } from '../ui/modal.js';
 import { occursOn, toIso, parseIso } from '../logic/recurrence.js';
 import { holidayMap, countryByCode, MIN_YEAR, MAX_YEAR } from '../logic/holidays.js';
 import { hmToMinutes, minutesToHm, fmtMinutes, fmtMinutesShort, sumMonth } from '../logic/workhours.js';
+import { shiftMinutes, sumMonthShifts } from '../logic/shifts.js';
 import { decorationMap, chineseZodiac } from '../logic/decorations.js';
 import { openActivityModal } from './activityModal.js';
+import { getSetting } from './settings.js';
 
 const $ = id => document.getElementById(id);
 
@@ -212,7 +214,55 @@ async function loadRange(fromIso, toIsoStr) {
   const doneMap = new Set(recDone.map(r => `${r.activity_id}|${r.occurrence_date}`));
   const wh = await db.listWorkHours(fromIso, toIsoStr);
   const whMap = new Map(wh.map(r => [r.date, r.minutes]));
-  return { acts, doneMap, wh, whMap };
+  // turni: assegnazioni del periodo + tutti i modelli (per sigla/colore/orario)
+  const dayShifts = await db.listDayShifts(fromIso, toIsoStr);
+  const shiftMap = new Map(dayShifts.map(r => [r.date, r.shift_id]));
+  const typesById = new Map((await db.listShiftTypes()).map(s => [s.id, s]));
+  return { acts, doneMap, wh, whMap, dayShifts, shiftMap, typesById };
+}
+
+const workHoursOn = () => getSetting('show_work_hours') === '1';
+const shiftsOn = () => getSetting('show_shifts') === '1';
+
+/** Bottom-sheet: assegna (o rimuove con "Nessuno") il turno del giorno. */
+async function openShiftPicker(iso) {
+  const ov = $('shiftPickOverlay');
+  const list = $('shiftPickList');
+  const types = await db.listShiftTypes();
+  const current = await db.getDayShift(iso);
+  list.innerHTML = '';
+
+  const done = () => { ov.classList.remove('open'); ov.onclick = $('shiftPickCancel').onclick = null; };
+  const choose = async shiftId => { await db.setDayShift(iso, shiftId); done(); render(); };
+
+  const none = document.createElement('button');
+  none.type = 'button';
+  none.className = 'shift-pick' + (current ? '' : ' active');
+  none.textContent = t('no_shift');
+  none.addEventListener('click', () => choose(null));
+  list.appendChild(none);
+
+  if (!types.length) {
+    const hint = document.createElement('div');
+    hint.className = 'hint';
+    hint.style.marginTop = '8px';
+    hint.textContent = t('shift_empty');
+    list.appendChild(hint);
+  }
+
+  for (const st of types) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'shift-pick' + (current === st.id ? ' active' : '');
+    const rng = (st.start && st.end) ? ` · ${st.start}–${st.end}` : '';
+    b.innerHTML = `<span class="shift-sigla" style="background:${esc(st.color)}">${esc(st.label || '?')}</span> <span>${esc(st.name || st.label)}${esc(rng)}</span>`;
+    b.addEventListener('click', () => choose(st.id));
+    list.appendChild(b);
+  }
+
+  $('shiftPickCancel').onclick = done;
+  ov.onclick = e => { if (e.target === ov) done(); };
+  ov.classList.add('open');
 }
 
 // Le occorrenze di un giorno: attività secche del giorno + ricorrenti che vi cadono.
@@ -259,7 +309,7 @@ async function renderMonth() {
   const gridEnd = new Date(gridStart);
   gridEnd.setDate(gridEnd.getDate() + total - 1);
 
-  const { acts, doneMap, wh, whMap } = await loadRange(toIso(gridStart), toIso(gridEnd));
+  const { acts, doneMap, wh, whMap, dayShifts, shiftMap, typesById } = await loadRange(toIso(gridStart), toIso(gridEnd));
   const todayIso = toIso(new Date());
 
   const grid = document.createElement('div');
@@ -294,7 +344,7 @@ async function renderMonth() {
     }
 
     // angolo in alto a destra: ore lavorate del giorno (⏱ per aggiungerle)
-    if (d.getMonth() === m) {
+    if (workHoursOn() && d.getMonth() === m) {
       const minutes = whMap.get(iso) ?? 0;
       const wb = document.createElement('button');
       wb.className = 'whbadge' + (minutes > 0 ? ' has' : '');
@@ -305,6 +355,18 @@ async function renderMonth() {
         openWorkModal(iso);
       });
       cell.appendChild(wb);
+    }
+
+    // angolo in alto a sinistra: turno del giorno (sigla colorata, '+' se vuoto)
+    if (shiftsOn() && d.getMonth() === m) {
+      const st = typesById.get(shiftMap.get(iso));
+      const sb = document.createElement('button');
+      sb.className = 'shiftbadge' + (st ? ' has' : '');
+      sb.textContent = st ? (st.label || '•') : '+';
+      if (st) sb.style.background = st.color;
+      sb.setAttribute('aria-label', `${t('shift_row')} ${iso}`);
+      sb.addEventListener('click', ev => { ev.stopPropagation(); openShiftPicker(iso); });
+      cell.appendChild(sb);
     }
 
     const holidays = holidayNames(iso);
@@ -343,11 +405,12 @@ async function renderMonth() {
     grid.appendChild(cell);
   }
 
-  // totale ore lavorate del mese in vista (solo giorni del mese, non i bordi grigi)
+  // totali del mese in vista (solo giorni del mese, non i bordi grigi)
   const ym = `${y}-${String(m + 1).padStart(2, '0')}`;
-  const monthTotal = sumMonth(wh, ym);
   const children = [grid];
-  if (monthTotal > 0) {
+
+  const monthTotal = sumMonth(wh, ym);
+  if (workHoursOn() && monthTotal > 0) {
     const totRow = document.createElement('div');
     totRow.id = 'whTotal';
     const label = document.createElement('span');
@@ -360,6 +423,20 @@ async function renderMonth() {
     totRow.append(label, exp);
     children.push(totRow);
   }
+
+  if (shiftsOn()) {
+    const shiftTotal = sumMonthShifts(dayShifts, typesById, ym);
+    if (shiftTotal > 0) {
+      const sRow = document.createElement('div');
+      sRow.id = 'shiftTotal';
+      const label = document.createElement('span');
+      label.textContent = `🕒 ${t('shift_month_total')}: ${fmtMinutes(shiftTotal)}`;
+      label.style.flex = '1';
+      sRow.append(label);
+      children.push(sRow);
+    }
+  }
+
   $('calBody').replaceChildren(...children);
 }
 
@@ -399,13 +476,13 @@ async function renderWeek() {
   $('calLabel').textContent =
     `${start.getDate()} ${t('months')[start.getMonth()].slice(0, 3)} – ${end.getDate()} ${t('months')[end.getMonth()].slice(0, 3)} ${end.getFullYear()}`;
 
-  const { acts, doneMap, whMap } = await loadRange(toIso(start), toIso(end));
+  const { acts, doneMap, whMap, shiftMap, typesById } = await loadRange(toIso(start), toIso(end));
   const todayIso = toIso(new Date());
   const wrap = document.createElement('div');
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
-    wrap.appendChild(dayBlock(d, itemsForDay(acts, doneMap, toIso(d)), todayIso, false, whMap));
+    wrap.appendChild(dayBlock(d, itemsForDay(acts, doneMap, toIso(d)), todayIso, false, whMap, false, shiftMap, typesById));
   }
   $('calBody').replaceChildren(wrap);
 }
@@ -414,16 +491,16 @@ async function renderDay() {
   const iso = toIso(cursor);
   $('calLabel').textContent =
     `${t('dows_long')[(cursor.getDay() + 6) % 7]} ${cursor.getDate()} ${t('months')[cursor.getMonth()]} ${cursor.getFullYear()}`;
-  const { acts, doneMap, whMap } = await loadRange(iso, iso);
+  const { acts, doneMap, whMap, shiftMap, typesById } = await loadRange(iso, iso);
   const wrap = document.createElement('div');
-  wrap.appendChild(dayBlock(cursor, itemsForDay(acts, doneMap, iso), toIso(new Date()), true, whMap, true));
+  wrap.appendChild(dayBlock(cursor, itemsForDay(acts, doneMap, iso), toIso(new Date()), true, whMap, true, shiftMap, typesById));
   $('calBody').replaceChildren(wrap);
 }
 
 /** Blocco-giorno per viste settimana/giorno: intestazione + righe evento.
  *  In vista giorno (alwaysWork) la riga ore lavoro appare sempre come punto
  *  d'ingresso; in vista settimana solo se il giorno ha già ore registrate. */
-function dayBlock(d, items, todayIso, noHead = false, whMap = null, alwaysWork = false) {
+function dayBlock(d, items, todayIso, noHead = false, whMap = null, alwaysWork = false, shiftMap = null, typesById = null) {
   const iso = toIso(d);
   const box = document.createElement('div');
   box.className = 'agenda-day' + (iso === todayIso ? ' today' : '');
@@ -454,12 +531,29 @@ function dayBlock(d, items, todayIso, noHead = false, whMap = null, alwaysWork =
   }
 
   const workMin = whMap?.get(iso) ?? 0;
-  if (alwaysWork || workMin > 0) {
+  if (workHoursOn() && (alwaysWork || workMin > 0)) {
     const wr = document.createElement('button');
     wr.className = 'work-row' + (workMin > 0 ? ' has' : '');
     wr.textContent = `⏱ ${t('work_row')}: ${workMin > 0 ? fmtMinutes(workMin) : '—'}`;
     wr.addEventListener('click', () => openWorkModal(iso));
     box.appendChild(wr);
+  }
+
+  // riga turno: in vista giorno sempre (punto d'ingresso), in settimana solo se assegnato
+  const shiftType = typesById?.get(shiftMap?.get(iso));
+  if (shiftsOn() && (alwaysWork || shiftType)) {
+    const sr = document.createElement('button');
+    sr.className = 'work-row shift-row' + (shiftType ? ' has' : '');
+    if (shiftType) {
+      const rng = (shiftType.start && shiftType.end)
+        ? ` ${shiftType.start}–${shiftType.end} · ${fmtMinutes(shiftMinutes(shiftType.start, shiftType.end))}`
+        : '';
+      sr.textContent = `🕒 ${t('shift_row')}: ${shiftType.label || ''} ${shiftType.name || ''}${rng}`.replace(/\s+/g, ' ').trim();
+    } else {
+      sr.textContent = `🕒 ${t('shift_row')}: —`;
+    }
+    sr.addEventListener('click', () => openShiftPicker(iso));
+    box.appendChild(sr);
   }
 
   if (!items.length) {
