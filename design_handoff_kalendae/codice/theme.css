@@ -1,0 +1,42 @@
+/* KALENDAE — tema v1.0 (sostituisce src/css/theme.css di AGENDA/H8).
+   Stessi nomi di variabile: layout.css continua a funzionare.
+   Font: bundlare offline Cinzel 700 + IBM Plex Mono 400/500/600 + IBM Plex Sans 400–700
+   (vedi README-integrazione.md). */
+:root {
+  --bg: #090c09;
+  --panel: #111611;
+  --panel2: #171e16;
+  --line: #1f2a1e;
+  --ink: #dce8d4;
+  --dim: #7c8a72;
+  --neon: #3dff70;
+  --neon-dim: #1e8a44;
+  --neon-ink: #041408;   /* testo sopra sfondo neon */
+  --warn: #ffb347;
+  --danger: #ff5c5c;
+  --prio-low: #5b9aff;
+  --prio-mid: #ffb347;
+  --prio-high: #ff5c5c;
+  --radius: 8px;
+  --tap: 44px;
+  --mono: "IBM Plex Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --brand: "Cinzel", "Times New Roman", serif;  /* solo wordmark/marchio */
+}
+
+:root[data-theme="light"] {
+  --bg: #f4f7f2;
+  --panel: #ffffff;
+  --panel2: #e8efe4;
+  --line: #d3dece;
+  --ink: #131b14;
+  --dim: #5f6e5a;
+  --neon: #0a8c3d;
+  --neon-dim: #0a8c3d;
+  --neon-ink: #ffffff;
+  --warn: #9a5b00;
+  --danger: #c02929;
+  --prio-low: #1d5fd6;
+  --prio-mid: #9a5b00;
+  --prio-high: #c02929;
+}

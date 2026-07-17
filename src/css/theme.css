@@ -1,37 +1,42 @@
-/* AGENDA/H8 — tema. Scuro di default, chiaro via [data-theme="light"]. */
+/* KALENDAE — tema v1.0 (sostituisce src/css/theme.css di AGENDA/H8).
+   Stessi nomi di variabile: layout.css continua a funzionare.
+   Font: bundlare offline Cinzel 700 + IBM Plex Mono 400/500/600 + IBM Plex Sans 400–700
+   (vedi README-integrazione.md). */
 :root {
-  --bg: #0b0e0c;
-  --panel: #11150f;
-  --panel2: #161b12;
-  --line: #1f2a1c;
-  --ink: #d6e2cf;
-  --dim: #6d7a66;
-  --neon: #39ff6e;
-  --neon-dim: #1d7a3c;
-  --neon-ink: #04140a;   /* testo sopra sfondo neon */
+  --bg: #090c09;
+  --panel: #111611;
+  --panel2: #171e16;
+  --line: #1f2a1e;
+  --ink: #dce8d4;
+  --dim: #7c8a72;
+  --neon: #3dff70;
+  --neon-dim: #1e8a44;
+  --neon-ink: #041408;   /* testo sopra sfondo neon */
   --warn: #ffb347;
   --danger: #ff5c5c;
-  --prio-low: #4d8fff;
+  --prio-low: #5b9aff;
   --prio-mid: #ffb347;
   --prio-high: #ff5c5c;
-  --radius: 6px;
-  --tap: 44px;           /* touch target minimo */
-  --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --radius: 8px;
+  --tap: 44px;
+  --mono: "IBM Plex Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --brand: "Cinzel", "Times New Roman", serif;  /* solo wordmark/marchio */
 }
 
 :root[data-theme="light"] {
-  --bg: #f2f5f0;
+  --bg: #f4f7f2;
   --panel: #ffffff;
-  --panel2: #e9efe6;
-  --line: #cfdac9;
-  --ink: #17211a;
-  --dim: #5c6a58;
-  --neon: #0c8f3f;
-  --neon-dim: #0c8f3f;
+  --panel2: #e8efe4;
+  --line: #d3dece;
+  --ink: #131b14;
+  --dim: #5f6e5a;
+  --neon: #0a8c3d;
+  --neon-dim: #0a8c3d;
   --neon-ink: #ffffff;
-  --warn: #a35f00;
+  --warn: #9a5b00;
   --danger: #c02929;
   --prio-low: #1d5fd6;
-  --prio-mid: #a35f00;
+  --prio-mid: #9a5b00;
   --prio-high: #c02929;
 }

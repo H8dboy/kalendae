@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  
+  <defs>
+    <mask id="kmMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <text x="50" y="86" font-family="Cinzel, serif" font-size="96" font-weight="700" text-anchor="middle" fill="#ffffff">K</text>
+      <circle cx="62" cy="32" r="12.5" fill="#000000"></circle>
+    </mask>
+  </defs>
+  <rect width="100" height="100" fill="#dce8d4" mask="url(#kmMask)"></rect>
+  <path d="M 58 20.2 A 12.5 12.5 0 0 0 58 43.8 A 21 21 0 0 1 58 20.2 Z" fill="#3dff70"></path>
+</svg>

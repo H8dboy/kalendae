@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #060806; }
+  a { color: #3dff70; text-decoration: none; }
+  a:hover { color: #9dffbd; }
+</style>
+</helmet>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="kmMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <text x="50" y="86" font-family="Cinzel, serif" font-size="96" font-weight="700" text-anchor="middle" fill="#ffffff">K</text>
+      <circle cx="62" cy="32" r="12.5" fill="#000000"></circle>
+    </mask>
+    <symbol id="km-ink" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="#dce8d4" mask="url(#kmMask)"></rect>
+      <path d="M 58 20.2 A 12.5 12.5 0 0 0 58 43.8 A 21 21 0 0 1 58 20.2 Z" fill="#3dff70"></path>
+    </symbol>
+    <symbol id="km-dark" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="#131b14" mask="url(#kmMask)"></rect>
+      <path d="M 58 20.2 A 12.5 12.5 0 0 0 58 43.8 A 21 21 0 0 1 58 20.2 Z" fill="#0a8c3d"></path>
+    </symbol>
+    <symbol id="kms" viewBox="0 0 100 100">
+      <text x="50" y="86" font-family="Cinzel, serif" font-size="96" font-weight="700" text-anchor="middle" fill="#dce8d4">K</text>
+    </symbol>
+  </defs>
+</svg>
+
+<div style="width: 1280px; margin: 0 auto; padding: 56px 64px 80px; background: #070907; color: #dce8d4; font-family: 'IBM Plex Sans', sans-serif; display: flex; flex-direction: column; gap: 64px" data-screen-label="Brand sheet">
+
+  <div style="display: flex; align-items: center; gap: 14px; border-bottom: 1px solid #1f2a1e; padding-bottom: 20px">
+    <svg width="26" height="26"><use href="#km-ink"></use></svg>
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.24em; color: #7c8a72">KALENDAE — BRAND SHEET</div>
+    <div style="flex: 1"></div>
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.14em; color: #7c8a72">V 1.0 · LUGLIO 2026 · <a href="./Kalendae UI.dc.html">→ UI</a></div>
+  </div>
+
+  <div style="display: flex; gap: 72px; align-items: center">
+    <div style="flex: none; width: 300px; height: 300px; display: grid; place-items: center; background: radial-gradient(circle at 50% 42%, #101a10 0%, #070907 70%); border: 1px solid #1f2a1e; border-radius: 10px">
+      <svg width="216" height="216" style="filter: drop-shadow(0 0 18px rgba(61,255,112,0.22))"><use href="#km-ink"></use></svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 18px; min-width: 0">
+      <div style="font-family: Cinzel, serif; font-weight: 700; font-size: 74px; letter-spacing: 0.1em; line-height: 1; color: #dce8d4">KALENDAE</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.3em; color: #3dff70">AGENDA PERSONALE · OFFLINE-FIRST</div>
+      <p style="margin: 8px 0 0; font-size: 15px; line-height: 1.7; color: #a9b8a0; max-width: 620px; text-wrap: pretty">Nel calendario romano le <em style="color: #dce8d4; font-style: normal; font-weight: 600">Kalendae</em> erano il primo giorno del mese: il pontefice scrutava il cielo e, all'apparire del primo spicchio di luna nuova, «chiamava» (<em style="font-style: italic">calare</em>) il mese nuovo. Il marchio incide questo gesto nella pietra: una K capitale lapidaria interrotta dal disco lunare, con lo spicchio di luna nuova che riaccende il braccio obliquo. Nero assoluto e verde neon: la lapide e il terminale.</p>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.26em; color: #3dff70">01 — COSTRUZIONE</div>
+    <div style="display: flex; gap: 40px">
+      <div style="flex: none; width: 400px; height: 400px; position: relative; border: 1px solid #1f2a1e; border-radius: 10px; background-color: #0a0d0a; background-image: linear-gradient(#131a12 1px, transparent 1px), linear-gradient(90deg, #131a12 1px, transparent 1px); background-size: 25px 25px; background-position: 12px 12px">
+        <svg viewBox="0 0 100 100" style="position: absolute; inset: 20px; width: 360px; height: 360px; overflow: visible">
+          <use href="#km-ink" width="100" height="100"></use>
+          <circle cx="62" cy="32" r="12.5" fill="none" stroke="#1e8a44" stroke-width="0.5" stroke-dasharray="2 2"></circle>
+          <circle cx="62" cy="32" r="0.9" fill="#1e8a44"></circle>
+          <line x1="0" y1="19" x2="100" y2="19" stroke="#1e8a44" stroke-width="0.35" stroke-dasharray="2 2"></line>
+          <line x1="0" y1="86" x2="100" y2="86" stroke="#1e8a44" stroke-width="0.35" stroke-dasharray="2 2"></line>
+        </svg>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 14px; justify-content: center; font-size: 14px; line-height: 1.65; color: #a9b8a0; max-width: 560px">
+        <div style="display: flex; gap: 12px"><span style="font-family: 'IBM Plex Mono', monospace; color: #3dff70; flex: none">A</span><span><strong style="color: #dce8d4">Capitale lapidaria.</strong> La K è una capitale quadrata romana (Cinzel Bold): aste incise, grazie a scalpello, proporzioni monumentali.</span></div>
+        <div style="display: flex; gap: 12px"><span style="font-family: 'IBM Plex Mono', monospace; color: #3dff70; flex: none">B</span><span><strong style="color: #dce8d4">Disco lunare.</strong> Un disco pari al 28% del quadrato eclissa il braccio obliquo superiore, centrato sul suo asse: la luna nuova, nera come il fondo.</span></div>
+        <div style="display: flex; gap: 12px"><span style="font-family: 'IBM Plex Mono', monospace; color: #3dff70; flex: none">C</span><span><strong style="color: #dce8d4">Spicchio.</strong> Sul bordo ovest del disco riappare il primo filo di luce: l'unico elemento in verde neon. Non si sposta, non cambia fase, non cambia colore.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.26em; color: #3dff70">02 — PALETTE</div>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px">
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 84px; background: #070907"></div><div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 600">Nero lapide</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7c8a72">#070907</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 84px; background: #111611"></div><div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 600">Pannello</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7c8a72">#111611</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 84px; background: #1f2a1e"></div><div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 600">Linea</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7c8a72">#1f2a1e</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 84px; background: #dce8d4"></div><div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 600">Inchiostro</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7c8a72">#DCE8D4</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 84px; background: #7c8a72"></div><div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 600">Dim</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7c8a72">#7C8A72</span></div></div>
+      <div style="border: 1px solid #1e8a44; border-radius: 8px; overflow: hidden"><div style="height: 84px; background: #3dff70; box-shadow: inset 0 0 34px rgba(255,255,255,0.25)"></div><div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; font-weight: 600; color: #3dff70">Verde neon</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7c8a72">#3DFF70</span></div></div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px">
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 56px; background: #1e8a44"></div><div style="padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11.5px; font-weight: 600">Neon dim</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">#1E8A44</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 56px; background: #ffb347"></div><div style="padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11.5px; font-weight: 600">Warn / festivi</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">#FFB347</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 56px; background: #ff5c5c"></div><div style="padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11.5px; font-weight: 600">Danger / alta</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">#FF5C5C</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 56px; background: #5b9aff"></div><div style="padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11.5px; font-weight: 600">Priorità bassa</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">#5B9AFF</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 56px; background: #f4f7f2"></div><div style="padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11.5px; font-weight: 600">Fondo chiaro</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">#F4F7F2</span></div></div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden"><div style="height: 56px; background: #0a8c3d"></div><div style="padding: 8px 12px; display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 11.5px; font-weight: 600">Verde chiaro</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">#0A8C3D</span></div></div>
+    </div>
+    <div style="font-size: 12.5px; color: #7c8a72; line-height: 1.6">Il verde neon è un accento: mai come fondo di grandi superfici. Sul tema chiaro il neon diventa <span style="font-family: 'IBM Plex Mono', monospace; color: #0a8c3d">#0A8C3D</span> per contrasto AA; lo spicchio del marchio resta <span style="font-family: 'IBM Plex Mono', monospace; color: #3dff70">#3DFF70</span> solo su fondo nero.</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.26em; color: #3dff70">03 — TIPOGRAFIA</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px">
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #0a0d0a">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.2em; color: #7c8a72">BRAND / DISPLAY</div>
+        <div style="font-family: Cinzel, serif; font-size: 34px; font-weight: 700; letter-spacing: 0.08em; line-height: 1.15">KALENDAE MMXXVI</div>
+        <div style="font-size: 12.5px; color: #7c8a72">Cinzel Bold — solo maiuscole, solo per marchio e titoli di schermata. Mai per testi correnti.</div>
+      </div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #0a0d0a">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.2em; color: #7c8a72">INTERFACCIA</div>
+        <div style="font-size: 21px; line-height: 1.35">Sistemare la lavatrice entro giovedì alle 15:00</div>
+        <div style="font-size: 12.5px; color: #7c8a72">IBM Plex Sans 400–700 — titoli di attività, note, corpo. Fallback: system-ui.</div>
+      </div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #0a0d0a">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.2em; color: #7c8a72">DATI / ETICHETTE</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; line-height: 1.5; color: #3dff70">GIO 16 LUG — 15:00<br>8H 30M · €118,90</div>
+        <div style="font-size: 12.5px; color: #7c8a72">IBM Plex Mono — date, ore, importi, etichette maiuscole spaziate (+0.16em).</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.26em; color: #3dff70">04 — ICONA APP</div>
+    <div style="display: flex; gap: 40px; align-items: flex-end">
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: center">
+        <div id="icon512" style="width: 144px; height: 144px; border-radius: 32px; background: radial-gradient(circle at 50% 38%, #121a12 0%, #070907 72%); border: 1px solid #263326; display: grid; place-items: center; box-shadow: 0 10px 40px rgba(0,0,0,0.6)">
+          <svg width="92" height="92" viewBox="0 0 100 100" style="filter: drop-shadow(0 0 10px rgba(61,255,112,0.3))"><defs><mask id="kmMaskIcon" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><text x="50" y="86" font-family="Cinzel, serif" font-size="96" font-weight="700" text-anchor="middle" fill="#ffffff">K</text><circle cx="62" cy="32" r="12.5" fill="#000000"></circle></mask></defs><rect width="100" height="100" fill="#eaf5e4" mask="url(#kmMaskIcon)"></rect><path d="M 58 20.2 A 12.5 12.5 0 0 0 58 43.8 A 21 21 0 0 1 58 20.2 Z" fill="#3dff70"></path></svg>
+        </div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">512 × 512 — DESKTOP / STORE</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: center">
+        <div style="width: 96px; height: 96px; border-radius: 50%; background: radial-gradient(circle at 50% 38%, #121a12 0%, #070907 72%); border: 1px solid #263326; display: grid; place-items: center">
+          <svg width="56" height="56"><use href="#km-ink"></use></svg>
+        </div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">ANDROID ADATTIVA</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: center">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: #0a0d0a; border: 1px solid #263326; display: grid; place-items: center">
+          <svg width="30" height="30"><use href="#km-ink"></use></svg>
+        </div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">48 PX</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; align-items: center">
+        <div style="width: 24px; height: 24px; border-radius: 6px; background: #0a0d0a; border: 1px solid #263326; display: grid; place-items: center">
+          <svg width="16" height="16"><use href="#kms"></use></svg>
+        </div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7c8a72">≤ 24 PX — SENZA LUNA</span>
+      </div>
+      <div style="flex: 1; font-size: 12.5px; color: #7c8a72; line-height: 1.6; max-width: 330px">Fondo sempre nero lapide con alone radiale appena percettibile. Sotto i 24 px lo spicchio non è più leggibile: si usa la K piena, senza eclissi.</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.26em; color: #3dff70">05 — LOCKUP E SPAZIO DI RISPETTO</div>
+    <div style="display: flex; gap: 40px; align-items: center">
+      <div style="flex: none; position: relative; border: 1px dashed #1e8a44; border-radius: 6px; padding: 34px 42px">
+        <div style="display: flex; align-items: center; gap: 18px">
+          <svg width="56" height="56"><use href="#km-ink"></use></svg>
+          <span style="font-family: Cinzel, serif; font-weight: 700; font-size: 33px; letter-spacing: 0.14em; color: #dce8d4">KALENDAE</span>
+        </div>
+        <span style="position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: #070907; padding: 0 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #1e8a44">½ K</span>
+      </div>
+      <div style="font-size: 12.5px; color: #7c8a72; line-height: 1.6; max-width: 460px">Lockup orizzontale: marchio + wordmark in Cinzel Bold, spaziatura +0.14em. Area di rispetto su ogni lato: metà dell'altezza della K. Riduzione minima del lockup: 20 px di altezza (sotto, solo wordmark o solo marchio).</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.26em; color: #3dff70">06 — USI</div>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px">
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden">
+        <div style="height: 110px; display: grid; place-items: center; background: #070907"><svg width="62" height="62"><use href="#km-ink"></use></svg></div>
+        <div style="padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #3dff70; border-top: 1px solid #1f2a1e">✓ SU NERO</div>
+      </div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden">
+        <div style="height: 110px; display: grid; place-items: center; background: #f4f7f2"><svg width="62" height="62"><use href="#km-dark"></use></svg></div>
+        <div style="padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #3dff70; border-top: 1px solid #1f2a1e">✓ SU CHIARO — VERDE #0A8C3D</div>
+      </div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden">
+        <div style="height: 110px; display: grid; place-items: center; background: #070907; position: relative"><svg width="62" height="62" style="transform: rotate(-14deg)"><use href="#km-ink"></use></svg><div style="position: absolute; inset: 0; background: linear-gradient(to top right, transparent 49.6%, #ff5c5c 49.6%, #ff5c5c 50.4%, transparent 50.4%)"></div></div>
+        <div style="padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #ff5c5c; border-top: 1px solid #1f2a1e">✗ NON RUOTARE / RICOLORARE</div>
+      </div>
+      <div style="border: 1px solid #1f2a1e; border-radius: 8px; overflow: hidden">
+        <div style="height: 110px; display: grid; place-items: center; background: linear-gradient(135deg, #14351d, #0a5c2c); position: relative"><svg width="62" height="62"><use href="#km-ink"></use></svg><div style="position: absolute; inset: 0; background: linear-gradient(to top right, transparent 49.6%, #ff5c5c 49.6%, #ff5c5c 50.4%, transparent 50.4%)"></div></div>
+        <div style="padding: 9px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #ff5c5c; border-top: 1px solid #1f2a1e">✗ MAI SU FONDI VERDI / FOTO</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border-top: 1px solid #1f2a1e; padding-top: 18px; display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.16em; color: #7c8a72">
+    <span>KALENDAE — LA LUNA NUOVA CHIAMA IL MESE</span>
+    <span><a href="./Kalendae UI.dc.html">UI COMPLETA →</a></span>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

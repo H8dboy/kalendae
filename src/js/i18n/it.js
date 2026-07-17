@@ -1,6 +1,6 @@
 // Stringhe italiane — file di riferimento per le future traduzioni (en/sq).
 export default {
-  app_name: 'AGENDA/H8',
+  app_name: 'KALENDAE',
   today: 'Oggi',
   month: 'Mese',
   week: 'Settimana',
@@ -107,7 +107,7 @@ export default {
   error_save: 'Errore salvataggio',
   missing_title: 'Manca il titolo',
   name_exists: 'Nome già esistente',
-  notif_title: 'AGENDA/H8 — promemoria',
+  notif_title: 'KALENDAE — promemoria',
   notif_denied: 'Permesso notifiche negato dal sistema',
   more: 'altri',
   /* ore di lavoro */

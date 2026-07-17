@@ -1,6 +1,6 @@
 // English strings — same keys as it.js (parity enforced by tests/i18n.test.js).
 export default {
-  app_name: 'AGENDA/H8',
+  app_name: 'KALENDAE',
   today: 'Today',
   month: 'Month',
   week: 'Week',
@@ -107,7 +107,7 @@ export default {
   error_save: 'Save error',
   missing_title: 'Title is missing',
   name_exists: 'Name already exists',
-  notif_title: 'AGENDA/H8 — reminder',
+  notif_title: 'KALENDAE — reminder',
   notif_denied: 'Notification permission denied by the system',
   more: 'more',
   /* work hours */

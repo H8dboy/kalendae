@@ -35,7 +35,10 @@ async function showScreen(name, title = null) {
 
   for (const s of SCREENS) $('screen-' + s).hidden = s !== name;
   $('backBtn').hidden = name === 'calendar';
-  $('screenTitle').textContent = title ?? titleFor(name);
+  const resolvedTitle = title ?? titleFor(name);
+  $('screenTitle').textContent = resolvedTitle;
+  // "KALENDAE" in Cinzel (home); i nomi di sezione restano in mono.
+  $('screenTitle').classList.toggle('home', resolvedTitle === t('app_name'));
   $('tasksBtn').classList.toggle('active', name === 'tasks');
   $('notesBtn').classList.toggle('active', ['notes', 'notelist', 'noteedit'].includes(name));
   closeMenu();
@@ -206,7 +209,9 @@ async function boot() {
       calendar.setFirstDay(+s.first_day);
       calendar.setCountry(s.country);
       applyI18n();
-      $('screenTitle').textContent = titleFor(stack[stack.length - 1]);
+      const cur = titleFor(stack[stack.length - 1]);
+      $('screenTitle').textContent = cur;
+      $('screenTitle').classList.toggle('home', cur === t('app_name'));
     },
   });
   initMenu();

@@ -3,31 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>AGENDA/H8</title>
+  <title>KALENDAE</title>
   <link rel="stylesheet" href="css/theme.css" />
   <link rel="stylesheet" href="css/layout.css" />
 </head>
 <body>
+
+<!-- KALENDAE — defs SVG del marchio (una sola volta). currentColor + var(--neon) seguono il tema. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="kmMask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <text x="50" y="86" font-family="Cinzel, serif" font-size="96" font-weight="700" text-anchor="middle" fill="#ffffff">K</text>
+      <circle cx="62" cy="32" r="12.5" fill="#000000"></circle>
+    </mask>
+    <symbol id="km" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="currentColor" mask="url(#kmMask)"></rect>
+      <path d="M 58 20.2 A 12.5 12.5 0 0 0 58 43.8 A 21 21 0 0 1 58 20.2 Z" fill="var(--neon)"></path>
+    </symbol>
+  </defs>
+</svg>
+
 <div id="app">
 
   <!-- header: nome a sinistra, icone Task/Note e menu a destra -->
   <header id="topbar">
-    <button class="icon-btn" id="backBtn" aria-label="Indietro" hidden>←</button>
-    <h1 id="screenTitle">AGENDA/H8</h1>
+    <button class="icon-btn" id="backBtn" aria-label="Indietro" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5 L7.5 12 L14.5 19"></path></svg>
+    </button>
+    <svg class="klogo" aria-hidden="true"><use href="#km"></use></svg>
+    <h1 id="screenTitle">KALENDAE</h1>
     <div class="spacer"></div>
-    <button class="icon-btn" id="searchBtn" aria-label="Cerca">⌕</button>
-    <button class="icon-btn" id="tasksBtn" aria-label="Task">☑</button>
-    <button class="icon-btn" id="notesBtn" aria-label="Note">📄</button>
-    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-haspopup="true">⋮</button>
+    <button class="icon-btn" id="searchBtn" aria-label="Cerca">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16 L20.5 20.5"></path></svg>
+    </button>
+    <button class="icon-btn" id="tasksBtn" aria-label="Task">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"></rect><path d="M8.5 12.3 L11.1 15 L15.9 9.6"></path></svg>
+    </button>
+    <button class="icon-btn" id="notesBtn" aria-label="Note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7 3.5 H14.5 L19 8 V20.5 H7 Z"></path><path d="M14 3.5 V8.5 H19"></path></svg>
+    </button>
+    <button class="icon-btn" id="menuBtn" aria-label="Menu" aria-haspopup="true">
+      <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5.5" r="1.7"></circle><circle cx="12" cy="12" r="1.7"></circle><circle cx="12" cy="18.5" r="1.7"></circle></svg>
+    </button>
   </header>
 
   <!-- menu ⋮ -->
   <nav id="menuPop" aria-label="Menu">
-    <button id="mFitness">🏋 <span data-i18n="fitness"></span></button>
-    <button id="mPayments">🧮 <span data-i18n="payments"></span></button>
-    <button id="mArchive">🗂 <span data-i18n="archive"></span></button>
-    <button id="mStats">📊 <span data-i18n="stats"></span></button>
-    <button id="mSettings">⚙ <span data-i18n="settings"></span></button>
+    <button id="mFitness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7.5 8.5 V15.5 M4.5 10 V14 M16.5 8.5 V15.5 M19.5 10 V14 M7.5 12 H16.5"></path></svg> <span data-i18n="fitness"></span></button>
+    <button id="mPayments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5.5" y="3.5" width="13" height="17" rx="2.5"></rect><path d="M9 7.5 H15"></path><circle cx="9" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="15" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="9" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="12" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="15" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle></svg> <span data-i18n="payments"></span></button>
+    <button id="mArchive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="4.5" rx="1"></rect><path d="M6 9 V19.5 H18 V9"></path><path d="M10 12.5 H14"></path></svg> <span data-i18n="archive"></span></button>
+    <button id="mStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.5 19.5 V12 M12 19.5 V6 M18.5 19.5 V9.5"></path></svg> <span data-i18n="stats"></span></button>
+    <button id="mSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.4"></circle><path d="M12 4.2 V6.2 M12 17.8 V19.8 M4.2 12 H6.2 M17.8 12 H19.8 M6.5 6.5 L7.9 7.9 M16.1 16.1 L17.5 17.5 M17.5 6.5 L16.1 7.9 M7.9 16.1 L6.5 17.5"></path></svg> <span data-i18n="settings"></span></button>
   </nav>
 
   <main>

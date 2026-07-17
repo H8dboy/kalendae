@@ -1,4 +1,4 @@
-# AGENDA/H8
+# Kalendae
 
 Agenda personale **offline-first** in stile industriale/terminale (nero + verde
 neon): calendario, task organizzate in gruppi e note in cartelle, tutte sullo
