@@ -214,3 +214,9 @@ non ci sono modifiche da fare al progetto.
   `i18n/index.js`.
 - **Sync futura (Proton)**: vedi `sync/README.md` — interfaccia documentata,
   zero codice eseguito oggi.
+
+## Licenza
+
+Kalendae è software libero rilasciato sotto licenza **MIT** — vedi il file
+[`LICENSE`](LICENSE). Puoi usarlo, modificarlo e ridistribuirlo liberamente,
+mantenendo l'avviso di copyright.
