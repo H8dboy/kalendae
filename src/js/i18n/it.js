@@ -125,6 +125,8 @@ export default {
   /* turni */
   set_work_hours: 'Ore di lavoro',
   set_shifts: 'Turni',
+  shifts_promo_title: 'Attiva i TURNI di lavoro',
+  shifts_promo_hint: 'Modelli di turno con sigla e orario, da assegnare ai giorni del calendario. Indipendenti dalle Ore di lavoro.',
   shifts: 'Turni',
   shifts_title: 'TURNI',
   shift_row: 'Turno',

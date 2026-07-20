@@ -90,6 +90,8 @@ export function render() {
   rowCheck(t('set_notifications'), 'notifications');
 
   // --- Lavoro: Ore di lavoro e Turni sono indipendenti (uno, l'altro o entrambi). ---
+  // Banner in evidenza per far scoprire i Turni (nascosti dal menu finché non attivi).
+  shiftPromo();
   rowCheck(t('set_work_hours'), 'show_work_hours');
 
   // Promemoria serale "hai registrato le ore di oggi?": checkbox + orario.
@@ -102,8 +104,6 @@ export function render() {
     if (wrTime.value) set('work_reminder_time', wrTime.value);
   });
   wrRow.insertBefore(wrTime, wrRow.lastChild);
-
-  rowCheck(t('set_shifts'), 'show_shifts');
 
   const btn = (label, cls, onTap) => {
     const row = document.createElement('div');
@@ -120,6 +120,52 @@ export function render() {
   btn(t('export_json'), 'accent', exportJson);
   btn(t('export_ics'), 'accent', exportIcs);
   btn(t('import_json'), 'danger', importJson);
+}
+
+// Banner in evidenza in cima alla sezione Lavoro: card cliccabile che attiva i Turni,
+// così l'utente li scopre senza doverli cercare (il menu ⋮ Turni resta nascosto finché OFF).
+function shiftPromo() {
+  const body = $('settingsBody');
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.style.cssText = [
+    'display:flex', 'flex-direction:column', 'gap:6px', 'width:100%', 'text-align:left',
+    'padding:14px 16px', 'margin:4px 0 12px',
+    'border:1.5px solid var(--neon)', 'border-radius:var(--radius)',
+    'background:var(--panel2)', 'color:var(--ink)', 'cursor:pointer',
+  ].join(';');
+
+  const head = document.createElement('div');
+  head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px';
+  const title = document.createElement('span');
+  title.textContent = '✨ ' + t('shifts_promo_title');
+  title.style.cssText = 'font-weight:700;letter-spacing:.02em';
+  const pill = document.createElement('span');
+
+  const paint = () => {
+    const on = settings.show_shifts === '1';
+    pill.textContent = on ? 'ON' : 'OFF';
+    pill.style.cssText = 'font-size:12px;font-weight:700;padding:3px 12px;border-radius:999px;'
+      + (on ? 'background:var(--neon);color:var(--neon-ink)'
+            : 'background:var(--line);color:var(--dim)');
+    card.setAttribute('aria-pressed', on ? 'true' : 'false');
+  };
+  paint();
+
+  head.appendChild(title);
+  head.appendChild(pill);
+
+  const hint = document.createElement('span');
+  hint.textContent = t('shifts_promo_hint');
+  hint.style.cssText = 'font-size:13px;color:var(--dim);line-height:1.35';
+
+  card.appendChild(head);
+  card.appendChild(hint);
+  card.addEventListener('click', async () => {
+    await set('show_shifts', settings.show_shifts === '1' ? '0' : '1');
+    paint();
+  });
+  body.appendChild(card);
 }
 
 /* ---------- export / import ---------- */

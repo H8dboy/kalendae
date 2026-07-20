@@ -125,6 +125,8 @@ export default {
   /* shifts */
   set_work_hours: 'Work hours',
   set_shifts: 'Shifts',
+  shifts_promo_title: 'Enable work SHIFTS',
+  shifts_promo_hint: 'Shift templates with a label and time, assigned to calendar days. Independent from Work hours.',
   shifts: 'Shifts',
   shifts_title: 'SHIFTS',
   shift_row: 'Shift',
