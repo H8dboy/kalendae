@@ -4,8 +4,9 @@
 
 // v2: aggiunte work_hours, sports, workout_plans, plan_exercises, workouts
 // v3: aggiunte payment_categories, payment_plans, payment_installments
+// v4: aggiunte shift_types, day_shifts e cards (biglietti da visita, foto incluse)
 // (tutte opzionali in import: i backup vecchi restano importabili).
-export const BACKUP_VERSION = 3;
+export const BACKUP_VERSION = 4;
 
 export function buildBackup(dump, now = new Date()) {
   return JSON.stringify(

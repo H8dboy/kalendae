@@ -16,6 +16,8 @@ import * as search from './views/search.js';
 import * as fitness from './views/fitness.js';
 import * as payments from './views/payments.js';
 import * as shifts from './views/shifts.js';
+import * as cards from './views/cards.js';
+import * as habits from './views/habits.js';
 import { initActivityModal, refreshLabels as refreshActLabels } from './views/activityModal.js';
 import { parseQuickAdd } from './logic/quickadd.js';
 import { occursOn, toIso } from './logic/recurrence.js';
@@ -24,7 +26,7 @@ const $ = id => document.getElementById(id);
 
 /* ================= navigazione ================= */
 // Stack di schermate: 'calendar' è la radice, ← risale di un livello.
-const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings', 'fitness', 'sport', 'plan', 'payments', 'paycat', 'payplan', 'shifts'];
+const SCREENS = ['calendar', 'tasks', 'notes', 'notelist', 'noteedit', 'search', 'archive', 'stats', 'settings', 'fitness', 'sport', 'plan', 'payments', 'paycat', 'payplan', 'shifts', 'cards', 'card', 'habits', 'habit'];
 let stack = ['calendar'];
 
 async function showScreen(name, title = null) {
@@ -59,6 +61,10 @@ async function showScreen(name, title = null) {
   else if (name === 'paycat') payments.renderCategory();
   else if (name === 'payplan') payments.renderPlan();
   else if (name === 'shifts') shifts.renderShifts();
+  else if (name === 'cards') cards.renderCards();
+  else if (name === 'card') cards.renderCard();
+  else if (name === 'habits') habits.renderHabits();
+  else if (name === 'habit') habits.renderHabit();
 }
 
 function titleFor(name) {
@@ -66,6 +72,7 @@ function titleFor(name) {
     calendar: t('app_name'), tasks: t('tasks'), notes: t('notes'),
     search: t('search'), archive: t('archive'), stats: t('stats'), settings: t('settings'),
     fitness: t('fitness'), payments: t('payments'), shifts: t('shifts'),
+    cards: t('cards'), habits: t('habits'),
     // 'sport'/'plan'/'paycat'/'payplan' impostano il titolo nel loro render
   };
   return map[name] ?? t('app_name');
@@ -94,6 +101,8 @@ function initMenu() {
   $('mFitness').addEventListener('click', () => showScreen('fitness'));
   $('mPayments').addEventListener('click', () => showScreen('payments'));
   $('mShifts').addEventListener('click', () => showScreen('shifts'));
+  $('mCards').addEventListener('click', () => showScreen('cards'));
+  $('mHabits').addEventListener('click', () => showScreen('habits'));
   $('mArchive').addEventListener('click', () => showScreen('archive'));
   $('mStats').addEventListener('click', () => showScreen('stats'));
   $('mSettings').addEventListener('click', () => showScreen('settings'));
@@ -211,6 +220,8 @@ async function boot() {
   fitness.initFitness({ showScreen });
   payments.initPayments({ showScreen });
   shifts.initShifts();
+  cards.initCards({ showScreen });
+  habits.initHabits({ showScreen });
   search.initSearch();
   settingsView.initSettings({
     onChange: s => {

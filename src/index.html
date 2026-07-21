@@ -52,6 +52,8 @@
     <button id="mFitness"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7.5 8.5 V15.5 M4.5 10 V14 M16.5 8.5 V15.5 M19.5 10 V14 M7.5 12 H16.5"></path></svg> <span data-i18n="fitness"></span></button>
     <button id="mPayments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5.5" y="3.5" width="13" height="17" rx="2.5"></rect><path d="M9 7.5 H15"></path><circle cx="9" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="15" cy="12" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="9" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="12" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle><circle cx="15" cy="15.5" r="0.9" fill="currentColor" stroke="none"></circle></svg> <span data-i18n="payments"></span></button>
     <button id="mShifts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"></circle><path d="M12 8 V12 L15 14"></path></svg> <span data-i18n="shifts"></span></button>
+    <button id="mCards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="6" width="18.4" height="12" rx="2.5"></rect><circle cx="8.6" cy="11.2" r="2"></circle><path d="M5.4 15.6 C6.1 14.1 7.3 13.4 8.6 13.4 C9.9 13.4 11.1 14.1 11.8 15.6"></path><path d="M14.6 10.4 H18.6 M14.6 13.4 H18.6"></path></svg> <span data-i18n="cards"></span></button>
+    <button id="mHabits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 C12 7 8.5 8 8.5 12.5 A3.5 3.5 0 0 0 15.5 12.5 C15.5 10.5 14 9.5 14 9.5 C14 11 13 11.5 13 11.5 C13.4 9 12 5.5 12 3.5 Z"></path><path d="M6.5 15 C6.5 19 9 20.5 12 20.5 C15 20.5 17.5 19 17.5 15"></path></svg> <span data-i18n="habits"></span></button>
     <button id="mArchive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="4.5" rx="1"></rect><path d="M6 9 V19.5 H18 V9"></path><path d="M10 12.5 H14"></path></svg> <span data-i18n="archive"></span></button>
     <button id="mStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.5 19.5 V12 M12 19.5 V6 M18.5 19.5 V9.5"></path></svg> <span data-i18n="stats"></span></button>
     <button id="mSettings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.4"></circle><path d="M12 4.2 V6.2 M12 17.8 V19.8 M4.2 12 H6.2 M17.8 12 H19.8 M6.5 6.5 L7.9 7.9 M16.1 16.1 L17.5 17.5 M17.5 6.5 L16.1 7.9 M7.9 16.1 L6.5 17.5"></path></svg> <span data-i18n="settings"></span></button>
@@ -163,10 +165,34 @@
       <button class="fab" id="fabInstallment" aria-label="Nuova rata">+</button>
     </section>
 
+    <!-- ============ BIGLIETTI DA VISITA: elenco → dettaglio ============ -->
+    <section class="screen" id="screen-cards" hidden>
+      <div id="cardSearchBar">
+        <input type="search" id="cardSearch" autocomplete="off" />
+      </div>
+      <div class="filters" id="cardFilters"></div>
+      <div class="scroll" id="cardList"></div>
+      <button class="fab" id="fabCard" aria-label="Nuovo biglietto">+</button>
+    </section>
+
+    <section class="screen" id="screen-card" hidden>
+      <div class="scroll" id="cardBody"></div>
+    </section>
+
     <!-- ============ TURNI ============ -->
     <section class="screen" id="screen-shifts" hidden>
       <div class="scroll" id="shiftBody"></div>
       <button class="fab" id="fabShift" aria-label="Nuovo turno">+</button>
+    </section>
+
+    <!-- ============ ASTINENZA: elenco dipendenze → dettaglio ============ -->
+    <section class="screen" id="screen-habits" hidden>
+      <div class="scroll" id="habitList"></div>
+      <button class="fab" id="fabHabit" aria-label="Nuova dipendenza">+</button>
+    </section>
+
+    <section class="screen" id="screen-habit" hidden>
+      <div class="scroll" id="habitBody"></div>
     </section>
   </main>
 </div>
@@ -476,6 +502,130 @@
     </div>
   </div>
 </div>
+
+<!-- ============ modale dipendenza (nome, icona, modalità, parametri) ============ -->
+<div class="overlay" id="habitOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="habitModalTitle">
+    <h3 id="habitModalTitle"></h3>
+    <label for="hbName" data-i18n="habit_name_label"></label>
+    <input id="hbName" type="text" maxlength="60" />
+    <label data-i18n="habit_icon_label"></label>
+    <div class="emoji-seg wrap" id="hbIcons"></div>
+    <label data-i18n="habit_mode_label"></label>
+    <div class="seg" id="hbMode">
+      <button type="button" data-mode="streak" data-i18n="habit_mode_streak"></button>
+      <button type="button" data-mode="counter" data-i18n="habit_mode_counter"></button>
+    </div>
+    <div class="hint" data-i18n="habit_mode_hint"></div>
+    <!-- campi modalità conteggio -->
+    <div id="hbCounterFields" hidden>
+      <label for="hbUnit" data-i18n="habit_unit_label"></label>
+      <input id="hbUnit" type="text" maxlength="30" />
+      <div class="row2">
+        <div>
+          <label for="hbBaseline" data-i18n="habit_baseline_label"></label>
+          <input id="hbBaseline" type="number" min="0" inputmode="numeric" placeholder="0" />
+        </div>
+        <div>
+          <label for="hbGoal" data-i18n="habit_limit_label"></label>
+          <input id="hbGoal" type="number" min="0" inputmode="numeric" placeholder="0" />
+        </div>
+      </div>
+    </div>
+    <!-- campi modalità streak -->
+    <div id="hbStreakFields" hidden>
+      <label for="hbGoalStreak" data-i18n="habit_goal_days_label"></label>
+      <input id="hbGoalStreak" type="number" min="0" inputmode="numeric" placeholder="0" />
+    </div>
+    <label id="hbCostLabel"></label>
+    <input id="hbCost" type="text" inputmode="decimal" maxlength="20" placeholder="0" />
+    <div class="acts">
+      <button class="btn" id="hbCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="hbSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale voce di conteggio (data + quantità) ============ -->
+<div class="overlay" id="hcountOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="hcountTitle">
+    <h3 id="hcountTitle"></h3>
+    <label for="hcountDate" data-i18n="workout_date_label"></label>
+    <input id="hcountDate" type="date" />
+    <label for="hcountValue" data-i18n="habit_quantity_label"></label>
+    <div class="row2" style="align-items:center">
+      <input id="hcountValue" type="number" min="0" inputmode="numeric" placeholder="0" />
+      <span id="hcountUnit" class="mono" style="color:var(--dim)"></span>
+    </div>
+    <div class="acts">
+      <button class="btn" id="hcountCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="hcountSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale modifica inizio streak (data e ora) ============ -->
+<div class="overlay" id="hstartOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="hstartTitle">
+    <h3 id="hstartTitle" data-i18n="habit_edit_start"></h3>
+    <label for="hstartInput" data-i18n="habit_start_label"></label>
+    <input id="hstartInput" type="datetime-local" />
+    <div class="acts">
+      <button class="btn" id="hstartCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="hstartSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ modale biglietto da visita ============ -->
+<div class="overlay" id="cardOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cardModalTitle">
+    <h3 id="cardModalTitle"></h3>
+    <label data-i18n="card_photos_label"></label>
+    <div class="card-shots edit">
+      <div class="shot" id="cdShotFront"></div>
+      <div class="shot" id="cdShotBack"></div>
+    </div>
+    <label for="cdName" data-i18n="card_name_label"></label>
+    <input id="cdName" type="text" maxlength="120" />
+    <label data-i18n="card_trade_label"></label>
+    <div class="emoji-seg wrap" id="cdTrades"></div>
+    <input id="cdTrade" type="text" maxlength="60" />
+    <div class="row2">
+      <div>
+        <label for="cdPhone" data-i18n="card_phone_label"></label>
+        <input id="cdPhone" type="tel" inputmode="tel" maxlength="40" />
+      </div>
+      <div>
+        <label for="cdPhone2" data-i18n="card_phone2_label"></label>
+        <input id="cdPhone2" type="tel" inputmode="tel" maxlength="40" />
+      </div>
+    </div>
+    <label for="cdEmail" data-i18n="card_email_label"></label>
+    <input id="cdEmail" type="email" inputmode="email" maxlength="120" />
+    <label for="cdAddress" data-i18n="card_address_label"></label>
+    <input id="cdAddress" type="text" maxlength="200" />
+    <label for="cdNotes" data-i18n="notes_label"></label>
+    <textarea id="cdNotes" maxlength="1000"></textarea>
+    <label class="chkrow"><input type="checkbox" id="cdFavorite" /> <span data-i18n="card_favorite"></span></label>
+    <div class="acts">
+      <button class="btn danger" id="cdDelete" hidden data-i18n="delete"></button>
+      <button class="btn" id="cdCancel" data-i18n="cancel"></button>
+      <button class="btn accent" id="cdSave" data-i18n="save"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ visore foto a schermo intero ============ -->
+<div class="overlay" id="imgOverlay">
+  <div class="imgview" role="dialog" aria-modal="true">
+    <img id="imgViewImg" alt="" />
+    <button class="btn" id="imgViewClose" data-i18n="close"></button>
+  </div>
+</div>
+
+<!-- Selettore foto condiviso: con capture apre la fotocamera su Android. -->
+<input type="file" id="cardFileInput" accept="image/*" hidden />
 
 <div id="toast" role="status" aria-live="polite"></div>
 

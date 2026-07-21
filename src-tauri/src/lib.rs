@@ -194,6 +194,75 @@ fn migrations() -> Vec<Migration> {
                 shift_id INTEGER NOT NULL REFERENCES shift_types(id) ON DELETE CASCADE
             );
         "#,
+    },
+    Migration {
+        version: 5,
+        description: "biglietti_da_visita",
+        kind: MigrationKind::Up,
+        sql: r#"
+            -- Wallet dei biglietti da visita: foto fronte/retro + i campi che
+            -- servono per chiamare (idraulico, elettricista, ...).
+            -- Le foto sono data URL JPEG già ridimensionate lato app: restano
+            -- nel DB così finiscono anche nel backup JSON e l'app resta offline.
+            CREATE TABLE cards (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                name       TEXT NOT NULL,                  -- ditta o persona
+                trade      TEXT NOT NULL DEFAULT '',       -- mestiere, es. 'Idraulico'
+                icon       TEXT NOT NULL DEFAULT '📇',
+                phone      TEXT NOT NULL DEFAULT '',
+                phone2     TEXT NOT NULL DEFAULT '',
+                email      TEXT NOT NULL DEFAULT '',
+                address    TEXT NOT NULL DEFAULT '',
+                notes      TEXT NOT NULL DEFAULT '',
+                favorite   INTEGER NOT NULL DEFAULT 0,
+                front      TEXT NOT NULL DEFAULT '',       -- data URL o ''
+                back       TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+            CREATE INDEX idx_cards_trade ON cards(trade);
+        "#,
+    },
+    Migration {
+        version: 6,
+        description: "astinenza_dipendenze",
+        kind: MigrationKind::Up,
+        sql: r#"
+            -- Astinenza: ognuno traccia le sue dipendenze (sigarette, sesso,
+            -- caffè, social, videogiochi...). Due modalità:
+            --   'streak'  → tempo senza (contatore dall'ultimo inizio, ricadute)
+            --   'counter' → conteggio giornaliero (quante oggi, "in meno" del solito)
+            -- baseline/goal/cost cambiano significato in base alla modalità:
+            --   streak : goal = giorni-traguardo (opz.), cost = centesimi risparmiati AL GIORNO
+            --   counter: baseline = consumo giornaliero "di solito", goal = limite/giorno,
+            --            cost = centesimi per unità
+            CREATE TABLE habits (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                name        TEXT NOT NULL,
+                icon        TEXT NOT NULL DEFAULT '🚭',
+                mode        TEXT NOT NULL DEFAULT 'streak',   -- 'streak' | 'counter'
+                unit        TEXT NOT NULL DEFAULT '',         -- es. 'sigarette', 'caffè'
+                baseline    INTEGER,                          -- counter: solito consumo/giorno
+                goal        INTEGER,                          -- streak: giorni-traguardo · counter: limite/giorno
+                cost        INTEGER,                          -- centesimi (per giorno o per unità)
+                started_at  TEXT,                             -- streak: 'YYYY-MM-DD HH:MM' inizio streak corrente
+                best_streak INTEGER NOT NULL DEFAULT 0,       -- streak: record in giorni
+                position    INTEGER NOT NULL DEFAULT 0,
+                created_at  TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+
+            -- Voci di diario: per 'counter' una riga al giorno (quantità);
+            -- per 'streak' un evento di ricaduta (kind='relapse').
+            CREATE TABLE habit_entries (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                habit_id   INTEGER NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
+                date       TEXT NOT NULL,                     -- 'YYYY-MM-DD'
+                kind       TEXT NOT NULL DEFAULT 'count',     -- 'count' | 'relapse'
+                value      INTEGER NOT NULL DEFAULT 0,        -- counter: quantità del giorno
+                notes      TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+            );
+            CREATE INDEX idx_habit_entries ON habit_entries(habit_id, date);
+        "#,
     }]
 }
 

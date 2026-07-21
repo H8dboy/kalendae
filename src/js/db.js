@@ -217,6 +217,115 @@ export async function setDayShift(date, shiftId) {
   }
 }
 
+/* ---------------- biglietti da visita ---------------- */
+// Le foto (data URL) sono pesanti: l'elenco NON le carica, solo un flag di presenza.
+const CARD_COLS = 'id,name,trade,icon,phone,phone2,email,address,notes,favorite,created_at';
+
+export const listCards = () =>
+  select(`SELECT ${CARD_COLS},
+            (front <> '') AS has_front, (back <> '') AS has_back
+          FROM cards ORDER BY favorite DESC, name COLLATE NOCASE`);
+
+// Con le foto: solo per il dettaglio di un singolo biglietto.
+export const getCard = async id =>
+  (await select('SELECT * FROM cards WHERE id=$1', [id]))[0];
+
+const cardParams = c => [
+  c.name, c.trade ?? '', c.icon ?? '📇', c.phone ?? '', c.phone2 ?? '',
+  c.email ?? '', c.address ?? '', c.notes ?? '', c.favorite ? 1 : 0,
+  c.front ?? '', c.back ?? '',
+];
+
+export async function createCard(c) {
+  const r = await execute(
+    `INSERT INTO cards (name,trade,icon,phone,phone2,email,address,notes,favorite,front,back)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`, cardParams(c));
+  return r.lastInsertId;
+}
+
+export const updateCard = (id, c) =>
+  execute(
+    `UPDATE cards SET name=$1,trade=$2,icon=$3,phone=$4,phone2=$5,email=$6,
+     address=$7,notes=$8,favorite=$9,front=$10,back=$11 WHERE id=$12`,
+    [...cardParams(c), id]);
+
+export const setCardFavorite = (id, favorite) =>
+  execute('UPDATE cards SET favorite=$1 WHERE id=$2', [favorite ? 1 : 0, id]);
+
+export const deleteCard = id => execute('DELETE FROM cards WHERE id=$1', [id]);
+
+/* ---------------- astinenza: dipendenze ---------------- */
+const HABIT_COLS = 'id,name,icon,mode,unit,baseline,goal,cost,started_at,best_streak,position,created_at';
+
+export const listHabits = () =>
+  select(`SELECT ${HABIT_COLS} FROM habits ORDER BY position, id`);
+
+export const getHabit = async id =>
+  (await select(`SELECT ${HABIT_COLS} FROM habits WHERE id=$1`, [id]))[0];
+
+export async function createHabit(h) {
+  const pos = (await select('SELECT COALESCE(MAX(position),0)+1 AS p FROM habits'))[0].p;
+  // Le dipendenze a tempo partono da ora; il conteggio non ha inizio streak.
+  const started = h.mode === 'streak' ? (h.started_at ?? nowStamp()) : null;
+  const r = await execute(
+    `INSERT INTO habits (name, icon, mode, unit, baseline, goal, cost, started_at, best_streak, position)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,0,$9)`,
+    [h.name, h.icon ?? '🚭', h.mode ?? 'streak', h.unit ?? '',
+     h.baseline ?? null, h.goal ?? null, h.cost ?? null, started, pos]);
+  return r.lastInsertId;
+}
+
+// Aggiorna solo i campi anagrafici (non tocca started_at/best_streak: quelli
+// hanno API dedicate per non azzerare uno streak per sbaglio).
+export const updateHabit = (id, h) =>
+  execute('UPDATE habits SET name=$1, icon=$2, unit=$3, baseline=$4, goal=$5, cost=$6 WHERE id=$7',
+    [h.name, h.icon ?? '🚭', h.unit ?? '', h.baseline ?? null, h.goal ?? null, h.cost ?? null, id]);
+
+// ON DELETE CASCADE rimuove anche le voci; eliminazione esplicita per sicurezza.
+export async function deleteHabit(id) {
+  await execute('DELETE FROM habit_entries WHERE habit_id=$1', [id]);
+  await execute('DELETE FROM habits WHERE id=$1', [id]);
+}
+
+/* --- streak: inizio e ricadute --- */
+// Imposta l'inizio dello streak corrente (nuova dipendenza o "modifica inizio").
+export const setHabitStart = (id, startedAt) =>
+  execute('UPDATE habits SET started_at=$1 WHERE id=$2', [startedAt, id]);
+
+// Aggiorna il record personale (giorni) se superato.
+export const setHabitBest = (id, best) =>
+  execute('UPDATE habits SET best_streak=$1 WHERE id=$2', [best | 0, id]);
+
+// Ricaduta: registra l'evento e fa ripartire lo streak da ora.
+export async function addRelapse(id, notes = '') {
+  const now = nowStamp();
+  await execute('INSERT INTO habit_entries (habit_id, date, kind, value, notes) VALUES ($1,$2,\'relapse\',0,$3)',
+    [id, now.slice(0, 10), notes]);
+  await execute('UPDATE habits SET started_at=$1 WHERE id=$2', [now, id]);
+  return now;
+}
+
+export const listRelapses = habitId =>
+  select("SELECT * FROM habit_entries WHERE habit_id=$1 AND kind='relapse' ORDER BY date DESC, id DESC", [habitId]);
+
+export const deleteEntry = id => execute('DELETE FROM habit_entries WHERE id=$1', [id]);
+
+/* --- counter: conteggio giornaliero (una riga per giorno) --- */
+export const getHabitCount = async (habitId, date) =>
+  (await select("SELECT value FROM habit_entries WHERE habit_id=$1 AND date=$2 AND kind='count'", [habitId, date]))[0]?.value ?? 0;
+
+export const listHabitCounts = habitId =>
+  select("SELECT * FROM habit_entries WHERE habit_id=$1 AND kind='count' ORDER BY date DESC", [habitId]);
+
+// value<=0 → la riga del giorno si elimina (come per work_hours).
+export async function setHabitCount(habitId, date, value, notes = '') {
+  await execute("DELETE FROM habit_entries WHERE habit_id=$1 AND date=$2 AND kind='count'", [habitId, date]);
+  if (value > 0) {
+    await execute('INSERT INTO habit_entries (habit_id, date, kind, value, notes) VALUES ($1,$2,\'count\',$3,$4)',
+      [habitId, date, value | 0, notes]);
+  }
+}
+
 /* ---------------- fitness: sport ---------------- */
 export const listSports = () =>
   select(`SELECT s.*,
@@ -436,6 +545,9 @@ export async function dumpAll() {
     payment_categories: await select('SELECT * FROM payment_categories'),
     payment_plans: await select('SELECT * FROM payment_plans'),
     payment_installments: await select('SELECT * FROM payment_installments'),
+    cards: await select('SELECT * FROM cards'),
+    habits: await select('SELECT * FROM habits'),
+    habit_entries: await select('SELECT * FROM habit_entries'),
   };
 }
 
@@ -458,6 +570,9 @@ export async function restoreAll(data) {
   await execute('DELETE FROM payment_installments');
   await execute('DELETE FROM payment_plans');
   await execute('DELETE FROM payment_categories');
+  await execute('DELETE FROM cards');
+  await execute('DELETE FROM habit_entries');
+  await execute('DELETE FROM habits');
   for (const g of data.groups)
     await execute('INSERT INTO groups (id,name,created_at) VALUES ($1,$2,$3)', [g.id, g.name, g.created_at]);
   for (const a of data.activities)
@@ -506,4 +621,19 @@ export async function restoreAll(data) {
   for (const i of data.payment_installments ?? [])
     await execute('INSERT INTO payment_installments (id,plan_id,date,amount,notes,created_at) VALUES ($1,$2,$3,$4,$5,$6)',
       [i.id, i.plan_id, i.date, i.amount, i.notes, i.created_at]);
+  for (const c of data.cards ?? [])
+    await execute(
+      `INSERT INTO cards (id,name,trade,icon,phone,phone2,email,address,notes,favorite,front,back,created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      [c.id, c.name, c.trade, c.icon, c.phone, c.phone2, c.email, c.address,
+       c.notes, c.favorite, c.front, c.back, c.created_at]);
+  for (const h of data.habits ?? [])
+    await execute(
+      `INSERT INTO habits (id,name,icon,mode,unit,baseline,goal,cost,started_at,best_streak,position,created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+      [h.id, h.name, h.icon, h.mode, h.unit, h.baseline, h.goal, h.cost,
+       h.started_at, h.best_streak, h.position, h.created_at]);
+  for (const e of data.habit_entries ?? [])
+    await execute('INSERT INTO habit_entries (id,habit_id,date,kind,value,notes,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [e.id, e.habit_id, e.date, e.kind, e.value, e.notes, e.created_at]);
 }

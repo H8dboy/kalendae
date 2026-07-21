@@ -61,6 +61,17 @@ build desktop come bonus e iOS predisposto.
   registri ogni rata (data + importo): l'app **somma da sola i soldi
   versati** e mostra rimanenti e barra di avanzamento. Gli importi accettano
   virgola o punto ("249,90" o "249.90").
+- **Biglietti da visita 📇** (menu ⋮ → Biglietti): il portafoglio dei
+  bigliettini. Con **+** fotografi il biglietto **fronte e retro** (su Android
+  parte la fotocamera, in alternativa lo peschi dalla galleria), scegli il
+  mestiere da un chip (🔧 Idraulico, ⚡ Elettricista, 🧱 Muratore, ❄️ Caldaia,
+  🔑 Fabbro, 🚗 Meccanico…) e scrivi nome, numero, secondo numero, email,
+  indirizzo e note. Nell'elenco ogni riga ha il tasto **📞** che compone il
+  numero al volo, i preferiti (★) stanno in cima e in alto c'è la ricerca —
+  che trova anche digitando solo le cifre ("3331234" trova "333 123 4567") —
+  più i filtri per mestiere. Le foto sono ridimensionate e salvate dentro il
+  database, quindi finiscono anche nel backup JSON: tutto offline, nessun
+  permesso di rete.
 - **Funzioni estese**: notifiche locali all'ora impostata, ricerca su
   eventi/task/note, filtri (gruppo, priorità, aperte/fatte), archivio delle
   fatte ordinato per data di completamento, statistiche (completate per
@@ -68,7 +79,7 @@ build desktop come bonus e iOS predisposto.
   quick-add con parsing italiano ("domani 15:00 chiamare commercialista"),
   tema scuro/chiaro, impostazioni (primo giorno settimana, notifiche, lingua).
 
-Menu **⋮** in alto a destra → Fitness, Pagamenti, Archivio fatte, Statistiche, Impostazioni.
+Menu **⋮** in alto a destra → Fitness, Pagamenti, Turni, Biglietti, Archivio fatte, Statistiche, Impostazioni.
 
 ## Struttura del progetto
 
