@@ -43,7 +43,7 @@ export async function deleteGroup(id) {
 }
 
 /* ---------------- attività ---------------- */
-const ACT_COLS = 'id,title,description,group_id,date,time,priority,done,done_at,recurrence,reminder,created_at,updated_at';
+const ACT_COLS = 'id,title,description,group_id,kind,date,time,priority,done,done_at,recurrence,reminder,created_at,updated_at';
 
 export const getActivity = async id =>
   (await select(`SELECT ${ACT_COLS} FROM activities WHERE id=$1`, [id]))[0];
@@ -65,9 +65,9 @@ export const listDatedBetween = (from, to) =>
 
 export async function createActivity(a) {
   const r = await execute(
-    `INSERT INTO activities (title, description, group_id, date, time, priority, done, done_at, recurrence, reminder)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-    [a.title, a.description ?? '', a.group_id ?? 1, a.date ?? null, a.time ?? null,
+    `INSERT INTO activities (title, description, group_id, kind, date, time, priority, done, done_at, recurrence, reminder)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+    [a.title, a.description ?? '', a.group_id ?? 1, a.kind ?? 'project', a.date ?? null, a.time ?? null,
      a.priority ?? 1, a.done ? 1 : 0, a.done_at ?? null, a.recurrence ?? null, a.reminder ? 1 : 0]
   );
   return r.lastInsertId;
@@ -75,9 +75,9 @@ export async function createActivity(a) {
 
 export async function updateActivity(id, a) {
   await execute(
-    `UPDATE activities SET title=$1, description=$2, group_id=$3, date=$4, time=$5,
-     priority=$6, done=$7, done_at=$8, recurrence=$9, reminder=$10, updated_at=$11 WHERE id=$12`,
-    [a.title, a.description ?? '', a.group_id ?? 1, a.date ?? null, a.time ?? null,
+    `UPDATE activities SET title=$1, description=$2, group_id=$3, kind=$4, date=$5, time=$6,
+     priority=$7, done=$8, done_at=$9, recurrence=$10, reminder=$11, updated_at=$12 WHERE id=$13`,
+    [a.title, a.description ?? '', a.group_id ?? 1, a.kind ?? 'project', a.date ?? null, a.time ?? null,
      a.priority ?? 1, a.done ? 1 : 0, a.done_at ?? null, a.recurrence ?? null,
      a.reminder ? 1 : 0, nowStamp(), id]
   );
@@ -99,6 +99,7 @@ export const setActivityDate = (id, date, time = null) =>
 export async function deleteActivity(id) {
   await execute('DELETE FROM subtasks WHERE activity_id=$1', [id]);
   await execute('DELETE FROM recurrence_done WHERE activity_id=$1', [id]);
+  await execute('DELETE FROM daily_done WHERE activity_id=$1', [id]);
   await execute('DELETE FROM activities WHERE id=$1', [id]);
 }
 
@@ -117,18 +118,53 @@ export async function setOccurrenceDone(activityId, dateIso, done) {
   }
 }
 
-/* ---------------- sottoattività ---------------- */
+/* ---------------- sottoattività (2 livelli) ---------------- */
+// Ritorna TUTTE le sotto-task del progetto (entrambi i livelli): l'albero
+// per parent_id lo costruisce logic/tasks.js.
 export const listSubtasks = activityId =>
-  select('SELECT * FROM subtasks WHERE activity_id=$1 ORDER BY position, id', [activityId]);
+  select('SELECT id, activity_id, title, done, position, parent_id FROM subtasks WHERE activity_id=$1 ORDER BY position, id', [activityId]);
 
-export async function addSubtask(activityId, title) {
-  await execute('INSERT INTO subtasks (activity_id, title) VALUES ($1,$2)', [activityId, title]);
+// Tutte le sotto-task di tutti i progetti (per i badge di avanzamento nella lista).
+export const listAllSubtasks = () =>
+  select('SELECT id, activity_id, title, done, position, parent_id FROM subtasks ORDER BY position, id');
+
+// parentId null = sotto-task di 1° livello; valorizzato = sotto-sotto-task.
+export async function addSubtask(activityId, title, parentId = null) {
+  const pos = (await select(
+    'SELECT COALESCE(MAX(position),0)+1 AS p FROM subtasks WHERE activity_id=$1 AND parent_id IS $2',
+    [activityId, parentId]))[0].p;
+  await execute('INSERT INTO subtasks (activity_id, title, parent_id, position) VALUES ($1,$2,$3,$4)',
+    [activityId, title, parentId, pos]);
 }
 
 export const setSubtaskDone = (id, done) =>
   execute('UPDATE subtasks SET done=$1 WHERE id=$2', [done ? 1 : 0, id]);
 
-export const deleteSubtask = id => execute('DELETE FROM subtasks WHERE id=$1', [id]);
+// Elimina la voce e le sue eventuali sotto-voci (il PRAGMA foreign_keys può non
+// essere attivo su tutte le connessioni del pool: cancellazione esplicita).
+export async function deleteSubtask(id) {
+  await execute('DELETE FROM subtasks WHERE parent_id=$1', [id]);
+  await execute('DELETE FROM subtasks WHERE id=$1', [id]);
+}
+
+/* ---------------- task 'daily': completamenti e streak ---------------- */
+// Date completate di un task daily (più recenti prime): lo streak lo calcola
+// logic/tasks.js (dailyStreak).
+export const listDailyDates = activityId =>
+  select('SELECT date FROM daily_done WHERE activity_id=$1 ORDER BY date DESC', [activityId]);
+
+// activity_id fatti in un dato giorno (per marcare le caselle "fatto oggi").
+export const listDailyDoneOn = async date =>
+  (await select('SELECT activity_id FROM daily_done WHERE date=$1', [date])).map(r => r.activity_id);
+
+// done=true → segna il giorno; false → lo toglie.
+export async function setDailyDone(activityId, date, done) {
+  if (done) {
+    await execute('INSERT OR REPLACE INTO daily_done (activity_id, date) VALUES ($1,$2)', [activityId, date]);
+  } else {
+    await execute('DELETE FROM daily_done WHERE activity_id=$1 AND date=$2', [activityId, date]);
+  }
+}
 
 /* ---------------- cartelle e note ---------------- */
 export const listFolders = () =>
@@ -532,6 +568,7 @@ export async function dumpAll() {
     activities: await select('SELECT * FROM activities'),
     subtasks: await select('SELECT * FROM subtasks'),
     recurrence_done: await select('SELECT * FROM recurrence_done'),
+    daily_done: await select('SELECT * FROM daily_done'),
     note_folders: await select('SELECT * FROM note_folders'),
     notes: await select('SELECT * FROM notes'),
     settings: await select('SELECT * FROM settings'),
@@ -554,6 +591,7 @@ export async function dumpAll() {
 export async function restoreAll(data) {
   // Sostituzione completa: l'ordine rispetta le foreign key.
   await execute('DELETE FROM recurrence_done');
+  await execute('DELETE FROM daily_done');
   await execute('DELETE FROM subtasks');
   await execute('DELETE FROM activities');
   await execute('DELETE FROM groups');
@@ -577,14 +615,18 @@ export async function restoreAll(data) {
     await execute('INSERT INTO groups (id,name,created_at) VALUES ($1,$2,$3)', [g.id, g.name, g.created_at]);
   for (const a of data.activities)
     await execute(
-      `INSERT INTO activities (${ACT_COLS}) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
-      [a.id, a.title, a.description, a.group_id, a.date, a.time, a.priority, a.done, a.done_at, a.recurrence, a.reminder, a.created_at, a.updated_at]);
+      `INSERT INTO activities (${ACT_COLS}) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      // kind manca nei backup fatti prima della v7: default 'project'.
+      [a.id, a.title, a.description, a.group_id, a.kind ?? 'project', a.date, a.time, a.priority, a.done, a.done_at, a.recurrence, a.reminder, a.created_at, a.updated_at]);
   for (const s of data.subtasks)
-    await execute('INSERT INTO subtasks (id,activity_id,title,done,position) VALUES ($1,$2,$3,$4,$5)',
-      [s.id, s.activity_id, s.title, s.done, s.position]);
+    // parent_id manca nei backup pre-v7: default NULL (sotto-task di 1° livello).
+    await execute('INSERT INTO subtasks (id,activity_id,title,done,position,parent_id) VALUES ($1,$2,$3,$4,$5,$6)',
+      [s.id, s.activity_id, s.title, s.done, s.position, s.parent_id ?? null]);
   for (const r of data.recurrence_done ?? [])
     await execute('INSERT INTO recurrence_done (activity_id,occurrence_date,done_at) VALUES ($1,$2,$3)',
       [r.activity_id, r.occurrence_date, r.done_at]);
+  for (const d of data.daily_done ?? [])
+    await execute('INSERT INTO daily_done (activity_id,date) VALUES ($1,$2)', [d.activity_id, d.date]);
   for (const f of data.note_folders)
     await execute('INSERT INTO note_folders (id,name,created_at) VALUES ($1,$2,$3)', [f.id, f.name, f.created_at]);
   for (const n of data.notes)

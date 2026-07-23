@@ -205,9 +205,9 @@
     <input id="fTitle" type="text" maxlength="200" />
     <label for="fDesc" data-i18n="description_label"></label>
     <textarea id="fDesc" maxlength="2000"></textarea>
-    <label for="fGroup" data-i18n="group_label"></label>
+    <label for="fGroup" id="fGroupLabel" data-i18n="group_label"></label>
     <select id="fGroup"></select>
-    <div class="row2">
+    <div class="row2" id="fDateRow">
       <div>
         <label for="fDate" data-i18n="date_label"></label>
         <input id="fDate" type="date" />
@@ -217,14 +217,14 @@
         <input id="fTime" type="time" />
       </div>
     </div>
-    <div class="hint" data-i18n="date_hint"></div>
+    <div class="hint" id="fDateHint" data-i18n="date_hint"></div>
     <label data-i18n="priority_label"></label>
     <div class="seg" id="fPrio">
       <button type="button" class="pl0" data-p="0"></button>
       <button type="button" class="pl1" data-p="1"></button>
       <button type="button" class="pl2" data-p="2"></button>
     </div>
-    <label for="fRec" data-i18n="recurrence_label"></label>
+    <label for="fRec" id="fRecLabel" data-i18n="recurrence_label"></label>
     <select id="fRec">
       <option value=""></option>
       <option value="daily"></option>
@@ -232,7 +232,7 @@
       <option value="monthly"></option>
       <option value="yearly"></option>
     </select>
-    <label class="chkrow"><input type="checkbox" id="fReminder" /> <span data-i18n="reminder_label"></span></label>
+    <label class="chkrow" id="fReminderRow"><input type="checkbox" id="fReminder" /> <span data-i18n="reminder_label"></span></label>
     <label class="chkrow" id="doneChkRow"><input type="checkbox" id="fDone" /> <span data-i18n="done_label"></span></label>
     <div class="row2" id="doneRow" hidden>
       <div>

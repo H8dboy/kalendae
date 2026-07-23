@@ -263,6 +263,34 @@ fn migrations() -> Vec<Migration> {
             );
             CREATE INDEX idx_habit_entries ON habit_entries(habit_id, date);
         "#,
+    },
+    Migration {
+        version: 7,
+        description: "task_daily_e_progetti_gerarchici",
+        kind: MigrationKind::Up,
+        sql: r#"
+            -- Due macro-tipi di task nella sezione Task:
+            --   'project' → progetto con sotto-task e sotto-sotto-task (3 livelli)
+            --   'daily'   → routine che si azzera ogni giorno, con streak
+            -- Gli eventi datati e i task già esistenti restano 'project' (default),
+            -- così il comportamento attuale non cambia.
+            ALTER TABLE activities ADD COLUMN kind TEXT NOT NULL DEFAULT 'project';
+
+            -- Terzo livello della gerarchia: una sotto-task può avere una madre.
+            -- parent_id NULL = sotto-task di 1° livello (figlia del progetto);
+            -- valorizzato = sotto-sotto-task (2° livello).
+            ALTER TABLE subtasks ADD COLUMN parent_id INTEGER
+                REFERENCES subtasks(id) ON DELETE CASCADE;
+
+            -- Storico dei completamenti giornalieri dei task 'daily': una riga per
+            -- giorno fatto. Il task è "fatto oggi" se esiste la riga di oggi; lo
+            -- streak è il numero di giorni consecutivi fino a oggi (calcolato lato app).
+            CREATE TABLE daily_done (
+                activity_id INTEGER NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+                date        TEXT NOT NULL,   -- 'YYYY-MM-DD'
+                PRIMARY KEY (activity_id, date)
+            );
+        "#,
     }]
 }
 

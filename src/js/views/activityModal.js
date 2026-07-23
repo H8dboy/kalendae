@@ -10,6 +10,7 @@ const $ = id => document.getElementById(id);
 
 let editingId = null;
 let priority = 1;
+let kind = 'project';      // 'project' | 'daily' — fissato alla creazione
 let onChangeCb = null;
 let onPickDateCb = null;   // impostata da main: avvia la modalità "scegli giorno"
 
@@ -101,12 +102,20 @@ async function fillGroups(selectedId) {
   }
 }
 
-export async function openActivityModal({ id = null, presetDate = null, presetGroup = null, onChange = null } = {}) {
+export async function openActivityModal({ id = null, presetDate = null, presetGroup = null, presetKind = 'project', onChange = null } = {}) {
   editingId = id;
   onChangeCb = onChange;
   const a = id ? await db.getActivity(id) : null;
+  kind = a?.kind ?? presetKind;
+  const daily = kind === 'daily';
 
-  $('actTitle').textContent = a ? t('edit_activity') : t('new_activity');
+  // Un task 'daily' è una routine: niente data, ricorrenza, promemoria,
+  // gruppo o sotto-task — solo titolo, note e priorità.
+  applyKindVisibility(daily);
+
+  $('actTitle').textContent = daily
+    ? (a ? t('edit_daily') : t('new_daily'))
+    : (a ? t('edit_activity') : t('new_activity'));
   $('fTitle').value = a?.title ?? '';
   $('fDesc').value = a?.description ?? '';
   await fillGroups(a?.group_id ?? presetGroup ?? 1);
@@ -126,11 +135,21 @@ export async function openActivityModal({ id = null, presetDate = null, presetGr
     $('fDoneTime').value = '';
   }
   $('actDelete').hidden = !a;
-  $('actPickDate').hidden = !!a?.date;   // utile solo se non ha già una data
-  $('subBlock').hidden = !a;             // le sottoattività si aggiungono dopo il primo salvataggio
-  if (a) await renderSubtasks();
+  // "assegna data" e sotto-task valgono solo per i progetti (mai per i daily).
+  $('actPickDate').hidden = daily || !!a?.date;
+  $('subBlock').hidden = daily || !a;    // le sotto-task si aggiungono dopo il primo salvataggio
+  if (a && !daily) await renderSubtasks();
   openOverlay('actOverlay');
   $('fTitle').focus();
+}
+
+// Mostra/nasconde i campi non pertinenti ai task 'daily'.
+function applyKindVisibility(daily) {
+  for (const el of ['fGroupLabel', 'fGroup', 'fDateRow', 'fDateHint',
+                    'fRecLabel', 'fRec', 'fReminderRow', 'doneChkRow']) {
+    $(el).hidden = daily;
+  }
+  if (daily) $('doneRow').hidden = true;
 }
 
 function close() {
@@ -143,15 +162,18 @@ async function save(opts = {}) {
   const title = $('fTitle').value.trim();
   if (!title) { toast(t('missing_title')); return null; }
   const done = $('fDone').checked;
+  const daily = kind === 'daily';
   const data = {
     title,
     description: $('fDesc').value.trim(),
-    group_id: +$('fGroup').value,
-    date: $('fDate').value || null,
-    time: $('fTime').value || null,
+    kind,
+    // I daily sono routine senza data/gruppo/ricorrenza: si azzerano quei campi.
+    group_id: daily ? 1 : +$('fGroup').value,
+    date: daily ? null : ($('fDate').value || null),
+    time: daily ? null : ($('fTime').value || null),
     priority,
-    recurrence: $('fRec').value || null,
-    reminder: $('fReminder').checked,
+    recurrence: daily ? null : ($('fRec').value || null),
+    reminder: daily ? false : $('fReminder').checked,
     done,
     done_at: done ? `${$('fDoneDate').value || nowIso()} ${$('fDoneTime').value || '00:00'}` : null,
   };
@@ -172,7 +194,9 @@ async function save(opts = {}) {
 /* ---------- sottoattività (checklist) ---------- */
 async function renderSubtasks() {
   const list = $('subList');
-  const subs = await db.listSubtasks(editingId);
+  // Nel modale si gestisce solo il 1° livello; le sotto-sotto-task si aggiungono
+  // dall'albero inline nella sezione Task.
+  const subs = (await db.listSubtasks(editingId)).filter(s => s.parent_id == null);
   list.innerHTML = '';
   for (const s of subs) {
     const row = document.createElement('div');

@@ -431,6 +431,31 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .task .meta .doneAt { color: var(--neon-dim); }
 .task .meta .datebadge { color: var(--warn); }
 
+/* tab macro Daily / Progetti */
+.task-tabs { display: flex; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.task-tabs .ttab {
+  flex: 1; background: none; border: 1px solid var(--line); color: var(--dim);
+  padding: 9px; border-radius: 10px; cursor: pointer; min-height: var(--tap);
+  font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+}
+.task-tabs .ttab.active { color: var(--neon-ink); background: var(--neon); border-color: var(--neon); font-weight: 700; }
+
+/* freccetta apri/chiudi (progetto e sotto-task) */
+.caret {
+  background: none; border: none; color: var(--dim); cursor: pointer;
+  font-size: 12px; flex: none; min-width: 26px; min-height: 26px; padding: 0;
+}
+.caret:hover { color: var(--neon); }
+
+/* albero sotto-task inline */
+.subtree { margin-left: 20px; border-left: 1px solid var(--line-soft); padding: 2px 0 4px 10px; }
+.subtree.l2 { margin-left: 16px; }
+.subtree .subtask { padding: 5px 0; }
+
+/* badge avanzamento sotto-task e streak daily */
+.task .meta .prog { color: var(--neon-dim); }
+.streak-badge { color: var(--neon); font-family: var(--mono); font-size: 11px; letter-spacing: .04em; }
+
 /* filtri a pillola */
 .filters { display: flex; gap: 6px; padding: 10px 12px; overflow-x: auto; border-bottom: 1px solid var(--line); }
 .fchip {
